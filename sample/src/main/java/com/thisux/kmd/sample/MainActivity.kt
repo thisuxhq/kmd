@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +35,6 @@ import com.thisux.kmd.CoilKmdImageRenderer
 import com.thisux.kmd.KmdKeywordHighlighter
 import com.thisux.kmd.KmdMaterial3
 import com.thisux.kmd.KmdOptions
-import com.thisux.kmd.KmdStreaming
 import com.thisux.kmd.KmdSyntaxHighlighter
 import com.thisux.kmd.LazyKmd
 import com.thisux.kmd.rememberKmdState
@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
 private enum class SampleTab(val label: String) {
     Document("Document"),
     Stream("Stream"),
+    Settings("Settings"),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,6 +66,8 @@ private enum class SampleTab(val label: String) {
 private fun SampleApp() {
     var selected by remember { mutableIntStateOf(0) }
     val tabs = SampleTab.entries
+    val motion = remember { MotionSettings() }
+    var playRequest by remember { mutableIntStateOf(0) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -91,7 +94,19 @@ private fun SampleApp() {
             }
             when (tabs[selected]) {
                 SampleTab.Document -> DocumentPane()
-                SampleTab.Stream -> StreamPane()
+                SampleTab.Stream ->
+                    StreamPane(
+                        motion = motion,
+                        playRequest = playRequest,
+                    )
+                SampleTab.Settings ->
+                    SettingsPane(
+                        settings = motion,
+                        onPlay = {
+                            playRequest += 1
+                            selected = SampleTab.Stream.ordinal
+                        },
+                    )
             }
         }
     }
@@ -130,7 +145,10 @@ private fun DocumentPane() {
 }
 
 @Composable
-private fun StreamPane() {
+private fun StreamPane(
+    motion: MotionSettings,
+    playRequest: Int,
+) {
     val context = LocalContext.current
     val highlighter = sampleHighlighter()
     val state = rememberKmdState()
@@ -138,25 +156,31 @@ private fun StreamPane() {
     var streaming by remember { mutableStateOf(false) }
     var job by remember { mutableStateOf<Job?>(null) }
 
+    fun play() {
+        job?.cancel()
+        job =
+            scope.launch {
+                streaming = true
+                state.reset()
+                SampleMarkdown.chunked(4).forEach { chunk ->
+                    state.append(chunk)
+                    delay(motion.tokenDelayMs.toLong())
+                }
+                streaming = false
+            }
+    }
+
+    LaunchedEffect(playRequest) {
+        if (playRequest > 0) play()
+    }
+
     Column(Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             FilledTonalButton(
-                onClick = {
-                    job?.cancel()
-                    job =
-                        scope.launch {
-                            streaming = true
-                            state.reset()
-                            SampleMarkdown.chunked(4).forEach { chunk ->
-                                state.append(chunk)
-                                delay(28)
-                            }
-                            streaming = false
-                        }
-                },
+                onClick = { play() },
                 enabled = !streaming,
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
             ) {
@@ -171,7 +195,7 @@ private fun StreamPane() {
                 style = KmdMaterial3.style(),
                 imageRenderer = CoilKmdImageRenderer,
                 syntaxHighlighter = highlighter,
-                options = KmdOptions(streaming = KmdStreaming.Default),
+                options = KmdOptions(streaming = motion.toStreaming()),
                 onLinkClick = { url ->
                     Toast.makeText(context, url, Toast.LENGTH_SHORT).show()
                 },

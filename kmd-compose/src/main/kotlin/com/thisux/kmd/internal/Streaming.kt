@@ -101,8 +101,8 @@ internal fun Modifier.streamingEnter(blockId: Long): Modifier =
                 targetValue = 1f,
                 animationSpec =
                     tween(
-                        durationMillis = 180,
-                        delayMillis = wave * 100,
+                        durationMillis = streaming.enterMillis.coerceAtLeast(0),
+                        delayMillis = wave * streaming.staggerMillis.coerceAtLeast(0),
                         easing = StreamEasing,
                     ),
             )

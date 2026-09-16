@@ -53,10 +53,11 @@ Links stay under the host app's control: [thisux](https://thisux.com).
 - [x] Build parser
 - [ ] Build renderer
 
-| Name | Role |
-|------|------|
-| Sam  | Dev  |
-| Mia  | PM   |
+| Name | Role | Team | Location | Focus | Status |
+|------|------|------|----------|-------|--------|
+| Sam  | Dev  | Android | Bengaluru | Compose renderer | Active |
+| Mia  | PM   | Product | London | Streaming docs | Active |
+| Ken  | Design | Studio | Tokyo | Sample polish | Paused |
 
 See https://thisux.com for more.
     """.trimIndent()

@@ -288,7 +288,6 @@ private fun RenderTable(
         TableGrid(
             columnCount = columnCount,
             rowCount = rows.size,
-            dividerColor = dividerColor,
         ) {
             rows.forEachIndexed { rowIndex, row ->
                 val header = rowIndex == 0
@@ -339,28 +338,24 @@ private fun RenderTable(
 private fun TableGrid(
     columnCount: Int,
     rowCount: Int,
-    dividerColor: Color,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Layout(content = content, modifier = modifier) { measurables, constraints ->
-        val loose =
-            constraints.copy(
-                minWidth = 0,
-                minHeight = 0,
-                maxWidth = Constraints.Infinity,
-                maxHeight = Constraints.Infinity,
-            )
-        val firstPass = measurables.map { it.measure(loose) }
+    Layout(content = content, modifier = modifier) { measurables, _ ->
         val columnWidths = IntArray(columnCount)
         val rowHeights = IntArray(rowCount)
-        firstPass.forEachIndexed { index, placeable ->
+        measurables.forEachIndexed { index, measurable ->
+            val column = index % columnCount
+            columnWidths[column] =
+                maxOf(columnWidths[column], measurable.maxIntrinsicWidth(Constraints.Infinity))
+        }
+        measurables.forEachIndexed { index, measurable ->
             val column = index % columnCount
             val row = index / columnCount
-            columnWidths[column] = maxOf(columnWidths[column], placeable.width)
-            rowHeights[row] = maxOf(rowHeights[row], placeable.height)
+            rowHeights[row] =
+                maxOf(rowHeights[row], measurable.minIntrinsicHeight(columnWidths[column]))
         }
-        val secondPass =
+        val placeables =
             measurables.mapIndexed { index, measurable ->
                 val column = index % columnCount
                 val row = index / columnCount
@@ -371,7 +366,7 @@ private fun TableGrid(
             for (row in 0 until rowCount) {
                 var x = 0
                 for (column in 0 until columnCount) {
-                    secondPass[row * columnCount + column].place(x, y)
+                    placeables[row * columnCount + column].place(x, y)
                     x += columnWidths[column]
                 }
                 y += rowHeights[row]

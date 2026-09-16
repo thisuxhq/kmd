@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.thisux.kmd.CoilKmdImageRenderer
 import com.thisux.kmd.Kmd
 import com.thisux.kmd.KmdMaterial3
 import com.thisux.kmd.rememberKmdState
@@ -106,6 +107,7 @@ private fun DocumentPane() {
                     .verticalScroll(rememberScrollState())
                     .padding(20.dp),
             style = KmdMaterial3.style(),
+            imageRenderer = CoilKmdImageRenderer,
             onLinkClick = { url ->
                 Toast.makeText(context, url, Toast.LENGTH_SHORT).show()
             },
@@ -156,6 +158,7 @@ private fun StreamPane() {
                         .padding(horizontal = 20.dp)
                         .padding(bottom = 24.dp),
                 style = KmdMaterial3.style(),
+                imageRenderer = CoilKmdImageRenderer,
                 onLinkClick = { url ->
                     Toast.makeText(context, url, Toast.LENGTH_SHORT).show()
                 },

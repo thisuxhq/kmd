@@ -1,0 +1,351 @@
+# Phases
+
+KMD ships in three phases.
+
+V1 is a complete product: Markdown → native Compose UI, with streaming.
+
+V2 makes that product the one people customize.
+
+Later makes it the one people extend.
+
+---
+
+## Phase 1 — Core
+
+**Goal:** a developer can render Markdown as native Compose UI, including streaming LLM output, with a tiny API.
+
+### Modules
+
+```text
+kmd-core
+kmd-compose
+kmd-compose-material3
+sample
+```
+
+### Public API
+
+```kotlin
+Kmd(markdown)
+Kmd(markdown, style)
+Kmd(state)
+```
+
+Streaming:
+
+```kotlin
+val state = rememberKmdState()
+state.append(token)
+```
+
+### Markdown support
+
+**Blocks**
+
+```text
+paragraphs
+H1–H6
+blockquotes
+horizontal rules
+fenced code blocks
+indented code blocks
+ordered lists
+unordered lists
+nested lists
+```
+
+**Inline**
+
+```text
+bold
+italic
+bold + italic
+inline code
+links
+images (as data, with a pluggable renderer)
+line breaks
+escaped characters
+```
+
+### Architecture that must exist in V1
+
+```text
+parser adapter
+KMD AST
+stable block identity
+append-only streaming
+typed style
+Material 3 as an optional module
+link click callbacks
+```
+
+### Parser
+
+Do not write a parser.
+
+Use an existing KMP parser (JetBrains Markdown is the leading candidate) behind `KmdParser`.
+
+### Code blocks
+
+Default rendering includes:
+
+```text
+language label
+copy action
+horizontal scroll
+```
+
+Syntax highlighting is *not* in core. Default is plain text, with a highlighter interface ready.
+
+### Explicitly out of V1
+
+```text
+our own complete Markdown parser
+rich text editing
+WYSIWYG
+HTML / JS execution
+every Markdown extension
+tables, task lists, strikethrough
+forced LazyColumn
+full cross-block selection promises
+```
+
+V1 is:
+
+> Markdown → native Compose UI.
+
+If it does not serve that sentence, it waits.
+
+---
+
+## Phase 2 — GFM and replacement points
+
+**Goal:** GitHub-flavored content looks native, and every visually important block can be replaced.
+
+### GFM
+
+```text
+strikethrough
+task lists
+tables
+autolinks
+```
+
+Task lists render as real Compose checkboxes, not emoji.
+
+Tables render as native rows and cells, with horizontal scrolling for wide content.
+
+### Renderer registry
+
+```kotlin
+Kmd(
+    markdown = markdown,
+    renderers = KmdRenderers {
+        codeBlock { block -> MyCodeBlock(block.code) }
+        link { link -> MyLink(link) }
+        image { image -> MyImage(image) }
+    }
+)
+```
+
+Possible overrides:
+
+```text
+heading
+paragraph
+code block
+inline code
+image
+link
+table
+quote
+list
+checkbox
+horizontal rule
+```
+
+This is one of KMD's biggest advantages. It should feel first-class, not bolted on.
+
+### Images
+
+```kotlin
+interface KmdImageRenderer
+```
+
+Optional adapters later:
+
+```text
+Coil
+Kamel
+custom loader
+```
+
+Core still does not depend on Coil.
+
+### Syntax highlighting
+
+```kotlin
+interface KmdSyntaxHighlighter {
+    fun highlight(language: String?, code: String): AnnotatedString
+}
+```
+
+Possible implementations:
+
+```text
+Tree-sitter
+TextMate
+custom highlighter
+remote Shiki
+```
+
+Default remains plain text.
+
+### Lazy rendering
+
+Do not force `LazyColumn` on `Kmd`.
+
+Add:
+
+```kotlin
+LazyKmd(markdown = readme)
+```
+
+for large documents, keyed by stable block identity.
+
+### Selection
+
+Verify `SelectionContainer { Kmd(markdown) }` across Android, iOS, Desktop, and Web before promising full cross-block selection.
+
+### New modules
+
+```text
+kmd-gfm
+kmd-images
+kmd-highlight
+```
+
+Streaming may stay in core. Split `kmd-streaming` only if the engine deserves its own artifact.
+
+---
+
+## Phase 3 — Extensions and depth
+
+**Goal:** KMD is the Markdown engine people build on, not just the one they drop in.
+
+### Extension API
+
+```kotlin
+interface KmdExtension
+
+KmdEngine(
+    extensions = listOf(
+        GfmExtension,
+        MathExtension
+    )
+)
+```
+
+Possible extensions:
+
+```text
+math
+Mermaid
+footnotes
+alerts
+mentions
+hashtags
+frontmatter
+custom directives
+```
+
+### Custom blocks
+
+Markdown such as:
+
+```md
+:::warning
+Do not expose your API key.
+```
+
+should be able to map to a user-supplied Compose block.
+
+This is the long-term power feature.
+
+### Performance program
+
+Benchmarks against:
+
+```text
+1 KB
+10 KB
+50 KB
+100 KB Markdown
+```
+
+Streaming at:
+
+```text
+10 tokens/sec
+50 tokens/sec
+100 tokens/sec
+```
+
+Example target document: 10,000 characters, 50–100 blocks, mixed code, lists, and links.
+
+Goals:
+
+```text
+initial render < 16–30 ms where practical
+smooth scrolling at 60 FPS
+minimal allocations during streaming
+stable blocks should not recompose
+```
+
+### Accessibility
+
+Generated Compose should preserve semantics:
+
+```text
+headings
+links
+images (content description)
+checkboxes (checked state)
+```
+
+Verified with TalkBack, VoiceOver, keyboard navigation, and screen readers.
+
+### Tooling modules
+
+```text
+kmd-math
+kmd-test
+kmd-benchmark
+```
+
+### Parser freedom
+
+Because V1 hid the parser, later we can add:
+
+```text
+KmdNativeParser
+CommonMarkParser
+ExperimentalStreamingParser
+```
+
+without touching the renderer.
+
+---
+
+## What does not move between phases
+
+These stay true from day one:
+
+```text
+no WebView
+no HTML execution
+no parser types in the public API
+no Material requirement in core
+append-only streaming as the first optimization
+small public API
+```

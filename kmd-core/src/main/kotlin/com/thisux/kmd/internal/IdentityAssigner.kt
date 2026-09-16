@@ -9,6 +9,8 @@ import com.thisux.kmd.KmdBlock
 import com.thisux.kmd.KmdListItem
 import com.thisux.kmd.OrderedList
 import com.thisux.kmd.Paragraph
+import com.thisux.kmd.Table
+import com.thisux.kmd.TableRow
 
 internal fun rematchBlocks(
     previous: List<KmdBlock>,
@@ -56,6 +58,10 @@ internal fun KmdBlock.sameContent(other: KmdBlock): Boolean {
             items.sameItems(other.items)
         this is OrderedList && other is OrderedList ->
             start == other.start && items.sameItems(other.items)
+        this is Table && other is Table ->
+            header.sameRow(other.header) &&
+                rows.size == other.rows.size &&
+                rows.zip(other.rows).all { (left, right) -> left.sameRow(right) }
         else -> false
     }
 }
@@ -63,9 +69,15 @@ internal fun KmdBlock.sameContent(other: KmdBlock): Boolean {
 private fun List<KmdListItem>.sameItems(other: List<KmdListItem>): Boolean {
     if (size != other.size) return false
     return zip(other).all { (left, right) ->
-        left.children.size == right.children.size &&
+        left.checked == right.checked &&
+            left.children.size == right.children.size &&
             left.children.zip(right.children).all { (a, b) -> a.sameContent(b) }
     }
+}
+
+private fun TableRow.sameRow(other: TableRow): Boolean {
+    if (cells.size != other.cells.size) return false
+    return cells.zip(other.cells).all { (left, right) -> left.content == right.content }
 }
 
 private fun rematchBlock(
@@ -97,6 +109,15 @@ private fun rematchBlock(
                 id = previous.id,
                 items = rematchItems(previous.items, incoming.items, ids),
             )
+        previous is Table && incoming is Table ->
+            incoming.copy(
+                id = previous.id,
+                header = incoming.header.copy(id = previous.header.id),
+                rows =
+                    incoming.rows.mapIndexed { index, row ->
+                        row.copy(id = previous.rows.getOrNull(index)?.id ?: ids.next())
+                    },
+            )
         else -> incoming.rekey(ids)
     }
 }
@@ -114,6 +135,7 @@ private fun rematchItems(
             KmdListItem(
                 id = prev.id,
                 children = rematchBlocks(prev.children, item.children, ids).first,
+                checked = item.checked,
             )
         }
     }
@@ -128,6 +150,12 @@ internal fun KmdBlock.rekey(ids: IdGenerator): KmdBlock {
         is BlockQuote -> copy(id = ids.next(), children = children.map { it.rekey(ids) })
         is BulletList -> copy(id = ids.next(), items = items.map { it.rekey(ids) })
         is OrderedList -> copy(id = ids.next(), items = items.map { it.rekey(ids) })
+        is Table ->
+            copy(
+                id = ids.next(),
+                header = header.copy(id = ids.next()),
+                rows = rows.map { it.copy(id = ids.next()) },
+            )
     }
 }
 
@@ -135,5 +163,6 @@ private fun KmdListItem.rekey(ids: IdGenerator): KmdListItem {
     return KmdListItem(
         id = ids.next(),
         children = children.map { it.rekey(ids) },
+        checked = checked,
     )
 }

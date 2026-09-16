@@ -35,4 +35,5 @@ rootProject.name = "kmd"
 include(":kmd-core")
 include(":kmd-compose")
 include(":kmd-compose-material3")
+include(":kmd-images")
 include(":sample")

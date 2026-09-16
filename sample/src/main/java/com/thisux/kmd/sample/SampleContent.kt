@@ -44,7 +44,7 @@ fun main() {
 
 Links stay under the host app's control: [thisux](https://thisux.com).
 
-![Diagram](https://example.com/diagram.png)
+![Mountains](https://picsum.photos/id/1015/800/400)
 
 ## GFM
 

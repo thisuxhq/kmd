@@ -20,11 +20,16 @@ import com.thisux.kmd.Paragraph
 import com.thisux.kmd.SoftBreak
 import com.thisux.kmd.Strike
 import com.thisux.kmd.Strong
+import com.thisux.kmd.Table
+import com.thisux.kmd.TableCell
+import com.thisux.kmd.TableRow
 import com.thisux.kmd.Text
 import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
+import org.intellij.markdown.flavours.gfm.GFMElementTypes
+import org.intellij.markdown.flavours.gfm.GFMTokenTypes
 
 internal class AstConverter(
     private val source: String,
@@ -80,6 +85,7 @@ internal class AstConverter(
                     blocks += OrderedList(unassigned, orderedStart(node), listItems(node))
                 MarkdownTokenTypes.HORIZONTAL_RULE ->
                     blocks += HorizontalRule(unassigned)
+                GFMElementTypes.TABLE -> table(node)?.let { blocks += it }
                 MarkdownElementTypes.MARKDOWN_FILE ->
                     blocks += convertBlocks(node.children)
                 MarkdownElementTypes.LIST_ITEM -> {
@@ -131,8 +137,38 @@ internal class AstConverter(
     private fun listItems(node: ASTNode): List<KmdListItem> {
         return node.children.mapNotNull { child ->
             if (child.type != MarkdownElementTypes.LIST_ITEM) return@mapNotNull null
-            KmdListItem(unassigned, convertBlocks(child.children))
+            val checkbox = child.child(GFMTokenTypes.CHECK_BOX)
+            val checked =
+                checkbox?.text()?.let { marker ->
+                    marker.contains('x', ignoreCase = true)
+                }
+            KmdListItem(
+                id = unassigned,
+                children = convertBlocks(child.children),
+                checked = checked,
+            )
         }
+    }
+
+    private fun table(node: ASTNode): Table? {
+        val headerNode = node.child(GFMElementTypes.HEADER) ?: return null
+        val header = tableRow(headerNode) ?: return null
+        val rows =
+            node.children.mapNotNull { child ->
+                if (child.type != GFMElementTypes.ROW) return@mapNotNull null
+                tableRow(child)
+            }
+        return Table(unassigned, header, rows)
+    }
+
+    private fun tableRow(node: ASTNode): TableRow? {
+        val cells =
+            node.children.mapNotNull { child ->
+                if (child.type != GFMTokenTypes.CELL) return@mapNotNull null
+                TableCell(trimInlines(convertInlines(child)))
+            }
+        if (cells.isEmpty()) return null
+        return TableRow(unassigned, cells)
     }
 
     private fun orderedStart(node: ASTNode): Int {
@@ -175,6 +211,7 @@ internal class AstConverter(
             MarkdownTokenTypes.HARD_LINE_BREAK -> result += HardBreak
             MarkdownElementTypes.EMPH -> result += Emphasis(convertInlines(node))
             MarkdownElementTypes.STRONG -> result += Strong(convertInlines(node))
+            GFMElementTypes.STRIKETHROUGH -> result += Strike(convertInlines(node))
             MarkdownElementTypes.CODE_SPAN -> result += InlineCode(codeSpanText(node))
             MarkdownElementTypes.INLINE_LINK -> result += inlineLink(node)
             MarkdownElementTypes.FULL_REFERENCE_LINK,
@@ -184,6 +221,7 @@ internal class AstConverter(
             MarkdownElementTypes.AUTOLINK,
             MarkdownTokenTypes.AUTOLINK,
             MarkdownTokenTypes.EMAIL_AUTOLINK,
+            GFMTokenTypes.GFM_AUTOLINK,
             -> {
                 val raw = node.text().trim()
                 val destination = raw.trim('<', '>')
@@ -210,6 +248,10 @@ internal class AstConverter(
             MarkdownElementTypes.LINK_TITLE,
             MarkdownElementTypes.LINK_LABEL,
             MarkdownElementTypes.LINK_DEFINITION,
+            GFMTokenTypes.TILDE,
+            GFMTokenTypes.TABLE_SEPARATOR,
+            GFMTokenTypes.CHECK_BOX,
+            GFMTokenTypes.DOLLAR,
             -> Unit
             else -> {
                 if (node.children.isNotEmpty()) {

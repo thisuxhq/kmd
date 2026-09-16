@@ -41,7 +41,23 @@ data class HorizontalRule(
     override val id: KmdBlockId,
 ) : KmdBlock
 
+data class Table(
+    override val id: KmdBlockId,
+    val header: TableRow,
+    val rows: List<TableRow>,
+) : KmdBlock
+
+data class TableRow(
+    val id: KmdBlockId,
+    val cells: List<TableCell>,
+)
+
+data class TableCell(
+    val content: List<KmdInline>,
+)
+
 data class KmdListItem(
     val id: KmdBlockId,
     val children: List<KmdBlock>,
+    val checked: Boolean? = null,
 )

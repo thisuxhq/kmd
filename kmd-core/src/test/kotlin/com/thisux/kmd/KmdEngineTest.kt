@@ -163,4 +163,53 @@ class KmdEngineTest {
         val snapshot = engine.replace("This is **som")
         assertTrue(snapshot.document.blocks.isNotEmpty())
     }
+
+    @Test
+    fun parseStrikethrough() {
+        val document = engine.parse("This is ~~gone~~.")
+        val paragraph = document.blocks.single() as Paragraph
+        assertEquals(Text("This is "), paragraph.content[0])
+        assertEquals(Strike(listOf(Text("gone"))), paragraph.content[1])
+        assertEquals(Text("."), paragraph.content[2])
+    }
+
+    @Test
+    fun parseTaskList() {
+        val document =
+            engine.parse(
+                """
+                - [x] Build parser
+                - [ ] Build renderer
+                """.trimIndent(),
+            )
+        val list = document.blocks.single() as BulletList
+        assertEquals(true, list.items[0].checked)
+        assertEquals(false, list.items[1].checked)
+    }
+
+    @Test
+    fun parseTable() {
+        val document =
+            engine.parse(
+                """
+                | Name | Role |
+                |------|------|
+                | Sam  | Dev  |
+                | Mia  | PM   |
+                """.trimIndent(),
+            )
+        val table = document.blocks.single() as Table
+        assertEquals(listOf(Text("Name")), table.header.cells[0].content)
+        assertEquals(listOf(Text("Role")), table.header.cells[1].content)
+        assertEquals(2, table.rows.size)
+        assertEquals(listOf(Text("Sam")), table.rows[0].cells[0].content)
+        assertEquals(listOf(Text("PM")), table.rows[1].cells[1].content)
+    }
+
+    @Test
+    fun parseAutolink() {
+        val document = engine.parse("See https://thisux.com for more.")
+        val paragraph = document.blocks.single() as Paragraph
+        assertTrue(paragraph.content.any { it is Link && it.destination.contains("thisux.com") })
+    }
 }

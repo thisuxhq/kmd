@@ -15,6 +15,27 @@ import com.thisux.kmd.KmdStyle
 import com.thisux.kmd.KmdSyntaxHighlighter
 
 @Composable
+internal fun ProvideKmdLocals(
+    style: KmdStyle,
+    options: KmdOptions,
+    onLinkClick: ((String) -> Unit)?,
+    imageRenderer: KmdImageRenderer?,
+    syntaxHighlighter: KmdSyntaxHighlighter?,
+    renderers: KmdRenderers,
+    content: @Composable () -> Unit,
+) {
+    CompositionLocalProvider(
+        LocalKmdStyle provides style,
+        LocalKmdOptions provides options,
+        LocalKmdOnLinkClick provides onLinkClick,
+        LocalKmdImageRenderer provides imageRenderer,
+        LocalKmdSyntaxHighlighter provides syntaxHighlighter,
+        LocalKmdRenderers provides renderers,
+        content = content,
+    )
+}
+
+@Composable
 internal fun RenderDocument(
     document: KmdDocument,
     modifier: Modifier,
@@ -25,13 +46,13 @@ internal fun RenderDocument(
     syntaxHighlighter: KmdSyntaxHighlighter?,
     renderers: KmdRenderers,
 ) {
-    CompositionLocalProvider(
-        LocalKmdStyle provides style,
-        LocalKmdOptions provides options,
-        LocalKmdOnLinkClick provides onLinkClick,
-        LocalKmdImageRenderer provides imageRenderer,
-        LocalKmdSyntaxHighlighter provides syntaxHighlighter,
-        LocalKmdRenderers provides renderers,
+    ProvideKmdLocals(
+        style = style,
+        options = options,
+        onLinkClick = onLinkClick,
+        imageRenderer = imageRenderer,
+        syntaxHighlighter = syntaxHighlighter,
+        renderers = renderers,
     ) {
         Column(modifier = modifier) {
             document.blocks.forEachIndexed { index, block ->

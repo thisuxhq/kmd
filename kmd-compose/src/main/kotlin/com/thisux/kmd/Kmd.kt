@@ -14,6 +14,7 @@ fun Kmd(
     onLinkClick: ((String) -> Unit)? = null,
     imageRenderer: KmdImageRenderer? = null,
     syntaxHighlighter: KmdSyntaxHighlighter? = null,
+    renderers: KmdRenderers = KmdRenderers.Default,
 ) {
     val document =
         remember(markdown) {
@@ -27,6 +28,7 @@ fun Kmd(
         onLinkClick = onLinkClick,
         imageRenderer = imageRenderer,
         syntaxHighlighter = syntaxHighlighter,
+        renderers = renderers,
     )
 }
 
@@ -39,6 +41,7 @@ fun Kmd(
     onLinkClick: ((String) -> Unit)? = null,
     imageRenderer: KmdImageRenderer? = null,
     syntaxHighlighter: KmdSyntaxHighlighter? = null,
+    renderers: KmdRenderers = KmdRenderers.Default,
 ) {
     RenderDocument(
         document = state.document,
@@ -48,5 +51,6 @@ fun Kmd(
         onLinkClick = onLinkClick,
         imageRenderer = imageRenderer,
         syntaxHighlighter = syntaxHighlighter,
+        renderers = renderers,
     )
 }

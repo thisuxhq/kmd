@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -33,10 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.thisux.kmd.CoilKmdImageRenderer
-import com.thisux.kmd.Kmd
 import com.thisux.kmd.KmdKeywordHighlighter
 import com.thisux.kmd.KmdMaterial3
 import com.thisux.kmd.KmdSyntaxHighlighter
+import com.thisux.kmd.LazyKmd
 import com.thisux.kmd.rememberKmdState
 import com.thisux.kmd.sample.theme.KmdTheme
 import kotlinx.coroutines.Job
@@ -115,13 +113,10 @@ private fun DocumentPane() {
     val context = LocalContext.current
     val highlighter = sampleHighlighter()
     SelectionContainer {
-        Kmd(
+        LazyKmd(
             markdown = SampleMarkdown,
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(20.dp),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(20.dp),
             style = KmdMaterial3.style(),
             imageRenderer = CoilKmdImageRenderer,
             syntaxHighlighter = highlighter,
@@ -167,14 +162,10 @@ private fun StreamPane() {
             }
         }
         SelectionContainer {
-            Kmd(
+            LazyKmd(
                 state = state,
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp)
-                        .padding(bottom = 24.dp),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 0.dp),
                 style = KmdMaterial3.style(),
                 imageRenderer = CoilKmdImageRenderer,
                 syntaxHighlighter = highlighter,

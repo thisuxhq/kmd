@@ -46,6 +46,7 @@ kotlin {
 dependencies {
     implementation(project(":kmd-compose-material3"))
     implementation(project(":kmd-images"))
+    implementation(project(":kmd-highlight"))
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     implementation(libs.androidx.core.ktx)

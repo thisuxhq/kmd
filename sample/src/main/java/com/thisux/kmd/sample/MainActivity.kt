@@ -34,7 +34,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.thisux.kmd.CoilKmdImageRenderer
 import com.thisux.kmd.Kmd
+import com.thisux.kmd.KmdKeywordHighlighter
 import com.thisux.kmd.KmdMaterial3
+import com.thisux.kmd.KmdSyntaxHighlighter
 import com.thisux.kmd.rememberKmdState
 import com.thisux.kmd.sample.theme.KmdTheme
 import kotlinx.coroutines.Job
@@ -96,8 +98,22 @@ private fun SampleApp() {
 }
 
 @Composable
+private fun sampleHighlighter(): KmdSyntaxHighlighter {
+    val scheme = MaterialTheme.colorScheme
+    return remember(scheme) {
+        KmdKeywordHighlighter(
+            keyword = scheme.primary,
+            string = scheme.tertiary,
+            comment = scheme.outline,
+            number = scheme.secondary,
+        )
+    }
+}
+
+@Composable
 private fun DocumentPane() {
     val context = LocalContext.current
+    val highlighter = sampleHighlighter()
     SelectionContainer {
         Kmd(
             markdown = SampleMarkdown,
@@ -108,6 +124,7 @@ private fun DocumentPane() {
                     .padding(20.dp),
             style = KmdMaterial3.style(),
             imageRenderer = CoilKmdImageRenderer,
+            syntaxHighlighter = highlighter,
             onLinkClick = { url ->
                 Toast.makeText(context, url, Toast.LENGTH_SHORT).show()
             },
@@ -118,6 +135,7 @@ private fun DocumentPane() {
 @Composable
 private fun StreamPane() {
     val context = LocalContext.current
+    val highlighter = sampleHighlighter()
     val state = rememberKmdState()
     val scope = rememberCoroutineScope()
     var streaming by remember { mutableStateOf(false) }
@@ -159,6 +177,7 @@ private fun StreamPane() {
                         .padding(bottom = 24.dp),
                 style = KmdMaterial3.style(),
                 imageRenderer = CoilKmdImageRenderer,
+                syntaxHighlighter = highlighter,
                 onLinkClick = { url ->
                     Toast.makeText(context, url, Toast.LENGTH_SHORT).show()
                 },

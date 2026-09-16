@@ -132,7 +132,14 @@ internal fun KmdText(
             modifier = Modifier.fillMaxWidth(),
             onTextLayout = { layout = it },
         )
-        val rect = layout?.getCursorRect(text.length)
+        val laidOut = layout
+        val rect =
+            if (laidOut != null) {
+                val end = laidOut.layoutInput.text.length
+                laidOut.getCursorRect(end)
+            } else {
+                null
+            }
         if (rect != null) {
             StreamingCaret(
                 Modifier

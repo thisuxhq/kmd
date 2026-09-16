@@ -13,13 +13,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -265,53 +270,112 @@ private fun RenderTable(
     val style = LocalKmdStyle.current
     val options = LocalKmdOptions.current
     val onLinkClick = LocalKmdOnLinkClick.current
-    Column(
+    val rows = buildList {
+        add(block.header)
+        addAll(block.rows)
+    }
+    val columnCount = block.header.cells.size
+    if (columnCount == 0) return
+    val shape = RoundedCornerShape(6.dp)
+    val dividerColor = style.colors.divider
+
+    Box(
         modifier
-            .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .border(1.dp, style.colors.divider, RoundedCornerShape(6.dp)),
+            .clip(shape)
+            .border(1.dp, dividerColor, shape),
     ) {
-        RenderTableRow(block.header, style, options, onLinkClick, header = true)
-        block.rows.forEachIndexed { index, row ->
-            Box(Modifier.fillMaxWidth().height(1.dp).background(style.colors.divider))
-            RenderTableRow(row, style, options, onLinkClick, header = false, striped = index % 2 == 1)
+        TableGrid(
+            columnCount = columnCount,
+            rowCount = rows.size,
+            dividerColor = dividerColor,
+        ) {
+            rows.forEachIndexed { rowIndex, row ->
+                val header = rowIndex == 0
+                val background =
+                    when {
+                        header -> style.colors.codeBackground
+                        (rowIndex - 1) % 2 == 1 -> dividerColor.copy(alpha = 0.25f)
+                        else -> Color.Transparent
+                    }
+                val lastRow = rowIndex == rows.lastIndex
+                repeat(columnCount) { column ->
+                    val cell = row.cells.getOrNull(column)
+                    Box(
+                        Modifier
+                            .background(background)
+                            .drawBehind {
+                                if (!lastRow) {
+                                    val stroke = 1.dp.toPx()
+                                    drawLine(
+                                        color = dividerColor,
+                                        start = Offset(0f, size.height - stroke / 2f),
+                                        end = Offset(size.width, size.height - stroke / 2f),
+                                        strokeWidth = stroke,
+                                    )
+                                }
+                            }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        if (cell != null) {
+                            BasicText(
+                                text = cell.content.toAnnotatedString(style, options, onLinkClick),
+                                style =
+                                    style.typography.paragraph.copy(
+                                        color = style.colors.text,
+                                        fontWeight = if (header) FontWeight.SemiBold else FontWeight.Normal,
+                                    ),
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun RenderTableRow(
-    row: TableRow,
-    style: KmdStyle,
-    options: KmdOptions,
-    onLinkClick: ((String) -> Unit)?,
-    header: Boolean,
-    striped: Boolean = false,
+private fun TableGrid(
+    columnCount: Int,
+    rowCount: Int,
+    dividerColor: Color,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
 ) {
-    Row(
-        Modifier.background(
-            if (header) {
-                style.colors.codeBackground
-            } else if (striped) {
-                style.colors.divider.copy(alpha = 0.25f)
-            } else {
-                style.colors.divider.copy(alpha = 0f)
-            },
-        ),
-    ) {
-        row.cells.forEach { cell ->
-            BasicText(
-                text = cell.content.toAnnotatedString(style, options, onLinkClick),
-                style =
-                    style.typography.paragraph.copy(
-                        color = style.colors.text,
-                        fontWeight = if (header) FontWeight.SemiBold else FontWeight.Normal,
-                    ),
-                modifier =
-                    Modifier
-                        .widthIn(min = 88.dp)
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
+    Layout(content = content, modifier = modifier) { measurables, constraints ->
+        val loose =
+            constraints.copy(
+                minWidth = 0,
+                minHeight = 0,
+                maxWidth = Constraints.Infinity,
+                maxHeight = Constraints.Infinity,
             )
+        val firstPass = measurables.map { it.measure(loose) }
+        val columnWidths = IntArray(columnCount)
+        val rowHeights = IntArray(rowCount)
+        firstPass.forEachIndexed { index, placeable ->
+            val column = index % columnCount
+            val row = index / columnCount
+            columnWidths[column] = maxOf(columnWidths[column], placeable.width)
+            rowHeights[row] = maxOf(rowHeights[row], placeable.height)
+        }
+        val secondPass =
+            measurables.mapIndexed { index, measurable ->
+                val column = index % columnCount
+                val row = index / columnCount
+                measurable.measure(Constraints.fixed(columnWidths[column], rowHeights[row]))
+            }
+        layout(columnWidths.sum(), rowHeights.sum()) {
+            var y = 0
+            for (row in 0 until rowCount) {
+                var x = 0
+                for (column in 0 until columnCount) {
+                    secondPass[row * columnCount + column].place(x, y)
+                    x += columnWidths[column]
+                }
+                y += rowHeights[row]
+            }
         }
     }
 }

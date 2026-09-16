@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -279,16 +280,18 @@ private fun RenderTable(
     val shape = RoundedCornerShape(6.dp)
     val dividerColor = style.colors.divider
 
-    Box(
-        modifier
-            .horizontalScroll(rememberScrollState())
-            .clip(shape)
-            .border(1.dp, dividerColor, shape),
-    ) {
-        TableGrid(
-            columnCount = columnCount,
-            rowCount = rows.size,
+    DisableSelection {
+        Box(
+            modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .border(1.dp, dividerColor, shape)
+                .horizontalScroll(rememberScrollState()),
         ) {
+            TableGrid(
+                columnCount = columnCount,
+                rowCount = rows.size,
+            ) {
             rows.forEachIndexed { rowIndex, row ->
                 val header = rowIndex == 0
                 val background =
@@ -329,6 +332,7 @@ private fun RenderTable(
                         }
                     }
                 }
+            }
             }
         }
     }

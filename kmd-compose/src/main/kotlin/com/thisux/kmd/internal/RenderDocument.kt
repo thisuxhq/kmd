@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.thisux.kmd.KmdDocument
 import com.thisux.kmd.KmdImageRenderer
 import com.thisux.kmd.KmdOptions
+import com.thisux.kmd.KmdRenderers
 import com.thisux.kmd.KmdStyle
 import com.thisux.kmd.KmdSyntaxHighlighter
 
@@ -22,6 +23,7 @@ internal fun RenderDocument(
     onLinkClick: ((String) -> Unit)?,
     imageRenderer: KmdImageRenderer?,
     syntaxHighlighter: KmdSyntaxHighlighter?,
+    renderers: KmdRenderers,
 ) {
     CompositionLocalProvider(
         LocalKmdStyle provides style,
@@ -29,6 +31,7 @@ internal fun RenderDocument(
         LocalKmdOnLinkClick provides onLinkClick,
         LocalKmdImageRenderer provides imageRenderer,
         LocalKmdSyntaxHighlighter provides syntaxHighlighter,
+        LocalKmdRenderers provides renderers,
     ) {
         Column(modifier = modifier) {
             document.blocks.forEachIndexed { index, block ->

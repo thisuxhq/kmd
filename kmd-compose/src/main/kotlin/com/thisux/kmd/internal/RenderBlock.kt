@@ -55,15 +55,38 @@ internal fun RenderBlock(
     block: KmdBlock,
     modifier: Modifier = Modifier,
 ) {
+    val renderers = LocalKmdRenderers.current
     when (block) {
-        is Heading -> RenderHeading(block, modifier)
-        is Paragraph -> RenderParagraph(block, modifier)
-        is CodeBlock -> RenderCodeBlock(block, modifier)
-        is BlockQuote -> RenderQuote(block, modifier)
-        is BulletList -> RenderBulletList(block, modifier)
-        is OrderedList -> RenderOrderedList(block, modifier)
-        is HorizontalRule -> RenderHorizontalRule(modifier)
-        is Table -> RenderTable(block, modifier)
+        is Heading ->
+            RenderOrOverride(renderers.heading, block, modifier) { RenderHeading(block, it) }
+        is Paragraph ->
+            RenderOrOverride(renderers.paragraph, block, modifier) { RenderParagraph(block, it) }
+        is CodeBlock ->
+            RenderOrOverride(renderers.codeBlock, block, modifier) { RenderCodeBlock(block, it) }
+        is BlockQuote ->
+            RenderOrOverride(renderers.quote, block, modifier) { RenderQuote(block, it) }
+        is BulletList ->
+            RenderOrOverride(renderers.bulletList, block, modifier) { RenderBulletList(block, it) }
+        is OrderedList ->
+            RenderOrOverride(renderers.orderedList, block, modifier) { RenderOrderedList(block, it) }
+        is HorizontalRule ->
+            RenderOrOverride(renderers.horizontalRule, block, modifier) { RenderHorizontalRule(it) }
+        is Table ->
+            RenderOrOverride(renderers.table, block, modifier) { RenderTable(block, it) }
+    }
+}
+
+@Composable
+private fun <T> RenderOrOverride(
+    override: (@Composable (T) -> Unit)?,
+    block: T,
+    modifier: Modifier,
+    default: @Composable (Modifier) -> Unit,
+) {
+    if (override != null) {
+        Box(modifier) { override(block) }
+    } else {
+        default(modifier)
     }
 }
 
@@ -395,6 +418,11 @@ private fun RenderImage(
     image: Image,
     modifier: Modifier,
 ) {
+    val fromRegistry = LocalKmdRenderers.current.image
+    if (fromRegistry != null) {
+        Box(modifier.fillMaxWidth()) { fromRegistry(image) }
+        return
+    }
     val renderer = LocalKmdImageRenderer.current
     if (renderer != null) {
         renderer.render(image, modifier.fillMaxWidth())

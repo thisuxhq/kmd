@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.thisux.kmd.KmdBlock
 import com.thisux.kmd.KmdDocument
 import com.thisux.kmd.KmdImageRenderer
 import com.thisux.kmd.KmdOptions
@@ -22,8 +24,15 @@ internal fun ProvideKmdLocals(
     imageRenderer: KmdImageRenderer?,
     syntaxHighlighter: KmdSyntaxHighlighter?,
     renderers: KmdRenderers,
+    activeBlock: KmdBlock? = null,
+    document: KmdDocument? = null,
     content: @Composable () -> Unit,
 ) {
+    val tracker = remember { BlockEnterTracker() }
+    if (document != null) {
+        tracker.onFrame(document.blocks.map { it.id.value })
+    }
+    val reduced = rememberReducedMotion()
     CompositionLocalProvider(
         LocalKmdStyle provides style,
         LocalKmdOptions provides options,
@@ -31,6 +40,9 @@ internal fun ProvideKmdLocals(
         LocalKmdImageRenderer provides imageRenderer,
         LocalKmdSyntaxHighlighter provides syntaxHighlighter,
         LocalKmdRenderers provides renderers,
+        LocalKmdActiveBlock provides activeBlock,
+        LocalBlockEnterTracker provides tracker,
+        LocalKmdReducedMotion provides reduced,
         content = content,
     )
 }
@@ -45,6 +57,7 @@ internal fun RenderDocument(
     imageRenderer: KmdImageRenderer?,
     syntaxHighlighter: KmdSyntaxHighlighter?,
     renderers: KmdRenderers,
+    activeBlock: KmdBlock? = null,
 ) {
     ProvideKmdLocals(
         style = style,
@@ -53,6 +66,8 @@ internal fun RenderDocument(
         imageRenderer = imageRenderer,
         syntaxHighlighter = syntaxHighlighter,
         renderers = renderers,
+        activeBlock = activeBlock,
+        document = document,
     ) {
         Column(modifier = modifier) {
             document.blocks.forEachIndexed { index, block ->

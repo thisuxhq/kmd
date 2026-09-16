@@ -56,23 +56,34 @@ internal fun RenderBlock(
     modifier: Modifier = Modifier,
 ) {
     val renderers = LocalKmdRenderers.current
+    val streaming = LocalKmdOptions.current.streaming
+    val reduced = LocalKmdReducedMotion.current
+    val caretId = LocalKmdActiveBlock.current?.caretLeafId()
+    val showCaret = streaming.caret && !reduced && block.id == caretId
+    val animatedModifier = modifier.streamingEnter(block.id.value)
     when (block) {
         is Heading ->
-            RenderOrOverride(renderers.heading, block, modifier) { RenderHeading(block, it) }
+            RenderOrOverride(renderers.heading, block, animatedModifier) {
+                RenderHeading(block, it, showCaret)
+            }
         is Paragraph ->
-            RenderOrOverride(renderers.paragraph, block, modifier) { RenderParagraph(block, it) }
+            RenderOrOverride(renderers.paragraph, block, animatedModifier) {
+                RenderParagraph(block, it, showCaret)
+            }
         is CodeBlock ->
-            RenderOrOverride(renderers.codeBlock, block, modifier) { RenderCodeBlock(block, it) }
+            RenderOrOverride(renderers.codeBlock, block, animatedModifier) {
+                RenderCodeBlock(block, it, showCaret)
+            }
         is BlockQuote ->
-            RenderOrOverride(renderers.quote, block, modifier) { RenderQuote(block, it) }
+            RenderOrOverride(renderers.quote, block, animatedModifier) { RenderQuote(block, it) }
         is BulletList ->
-            RenderOrOverride(renderers.bulletList, block, modifier) { RenderBulletList(block, it) }
+            RenderOrOverride(renderers.bulletList, block, animatedModifier) { RenderBulletList(block, it) }
         is OrderedList ->
-            RenderOrOverride(renderers.orderedList, block, modifier) { RenderOrderedList(block, it) }
+            RenderOrOverride(renderers.orderedList, block, animatedModifier) { RenderOrderedList(block, it) }
         is HorizontalRule ->
-            RenderOrOverride(renderers.horizontalRule, block, modifier) { RenderHorizontalRule(it) }
+            RenderOrOverride(renderers.horizontalRule, block, animatedModifier) { RenderHorizontalRule(it) }
         is Table ->
-            RenderOrOverride(renderers.table, block, modifier) { RenderTable(block, it) }
+            RenderOrOverride(renderers.table, block, animatedModifier) { RenderTable(block, it) }
     }
 }
 
@@ -94,6 +105,7 @@ private fun <T> RenderOrOverride(
 private fun RenderHeading(
     block: Heading,
     modifier: Modifier,
+    showCaret: Boolean = false,
 ) {
     val style = LocalKmdStyle.current
     val options = LocalKmdOptions.current
@@ -107,7 +119,7 @@ private fun RenderHeading(
             5 -> style.typography.h5
             else -> style.typography.h6
         }
-    BasicText(
+    KmdText(
         text = block.content.toAnnotatedString(style, options, onLinkClick),
         style = textStyle.copy(color = style.colors.text),
         modifier =
@@ -115,6 +127,7 @@ private fun RenderHeading(
                 .fillMaxWidth()
                 .padding(bottom = style.spacing.headingBottom)
                 .semantics { heading() },
+        showCaret = showCaret,
     )
 }
 
@@ -122,6 +135,7 @@ private fun RenderHeading(
 private fun RenderParagraph(
     block: Paragraph,
     modifier: Modifier,
+    showCaret: Boolean = false,
 ) {
     val image = block.content.singleOrNull() as? Image
     if (image != null) {
@@ -131,10 +145,11 @@ private fun RenderParagraph(
     val style = LocalKmdStyle.current
     val options = LocalKmdOptions.current
     val onLinkClick = LocalKmdOnLinkClick.current
-    BasicText(
+    KmdText(
         text = block.content.toAnnotatedString(style, options, onLinkClick),
         style = style.typography.paragraph.copy(color = style.colors.text),
         modifier = modifier.fillMaxWidth(),
+        showCaret = showCaret,
     )
 }
 

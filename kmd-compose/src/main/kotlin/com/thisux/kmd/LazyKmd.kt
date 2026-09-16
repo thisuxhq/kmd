@@ -57,8 +57,9 @@ fun LazyKmd(
     listState: LazyListState = rememberLazyListState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+    val snapshot = state.snapshot()
     LazyKmdDocument(
-        document = state.document,
+        document = snapshot.document,
         modifier = modifier,
         style = style,
         options = options,
@@ -68,6 +69,7 @@ fun LazyKmd(
         renderers = renderers,
         state = listState,
         contentPadding = contentPadding,
+        activeBlock = snapshot.activeBlock,
     )
 }
 
@@ -83,6 +85,7 @@ private fun LazyKmdDocument(
     renderers: KmdRenderers,
     state: LazyListState,
     contentPadding: PaddingValues,
+    activeBlock: KmdBlock? = null,
 ) {
     ProvideKmdLocals(
         style = style,
@@ -91,6 +94,8 @@ private fun LazyKmdDocument(
         imageRenderer = imageRenderer,
         syntaxHighlighter = syntaxHighlighter,
         renderers = renderers,
+        activeBlock = activeBlock,
+        document = document,
     ) {
         LazyColumn(
             modifier = modifier,

@@ -45,4 +45,18 @@ fun main() {
 Links stay under the host app's control: [thisux](https://thisux.com).
 
 ![Diagram](https://example.com/diagram.png)
+
+## GFM
+
+~~Old plan~~ New plan.
+
+- [x] Build parser
+- [ ] Build renderer
+
+| Name | Role |
+|------|------|
+| Sam  | Dev  |
+| Mia  | PM   |
+
+See https://thisux.com for more.
     """.trimIndent()

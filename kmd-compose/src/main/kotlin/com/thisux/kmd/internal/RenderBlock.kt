@@ -1,6 +1,8 @@
 package com.thisux.kmd.internal
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -9,15 +11,29 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.text.BasicText
 import com.thisux.kmd.BlockQuote
 import com.thisux.kmd.BulletList
 import com.thisux.kmd.CodeBlock
@@ -26,8 +42,12 @@ import com.thisux.kmd.HorizontalRule
 import com.thisux.kmd.Image
 import com.thisux.kmd.KmdBlock
 import com.thisux.kmd.KmdListItem
+import com.thisux.kmd.KmdOptions
+import com.thisux.kmd.KmdStyle
 import com.thisux.kmd.OrderedList
 import com.thisux.kmd.Paragraph
+import com.thisux.kmd.Table
+import com.thisux.kmd.TableRow
 
 @Composable
 internal fun RenderBlock(
@@ -42,6 +62,7 @@ internal fun RenderBlock(
         is BulletList -> RenderBulletList(block, modifier)
         is OrderedList -> RenderOrderedList(block, modifier)
         is HorizontalRule -> RenderHorizontalRule(modifier)
+        is Table -> RenderTable(block, modifier)
     }
 }
 
@@ -170,12 +191,21 @@ private fun RenderList(
                     start = style.list.indent,
                     bottom = if (index == items.lastIndex) 0.dp else style.list.itemSpacing,
                 ),
+                verticalAlignment = Alignment.Top,
             ) {
-                BasicText(
-                    text = marker(index),
-                    style = style.typography.paragraph.copy(color = style.colors.text),
-                    modifier = Modifier.width(style.list.markerWidth),
-                )
+                val checked = item.checked
+                if (checked != null) {
+                    TaskMarker(
+                        checked = checked,
+                        modifier = Modifier.width(style.list.markerWidth).padding(top = 4.dp),
+                    )
+                } else {
+                    BasicText(
+                        text = marker(index),
+                        style = style.typography.paragraph.copy(color = style.colors.text),
+                        modifier = Modifier.width(style.list.markerWidth),
+                    )
+                }
                 Column(Modifier.weight(1f)) {
                     item.children.forEachIndexed { childIndex, child ->
                         RenderBlock(
@@ -192,6 +222,159 @@ private fun RenderList(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskMarker(
+    checked: Boolean,
+    modifier: Modifier,
+) {
+    val style = LocalKmdStyle.current
+    Box(
+        modifier =
+            modifier.semantics {
+                role = Role.Checkbox
+                selected = checked
+                contentDescription = if (checked) "Completed" else "Not completed"
+            },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Box(
+            Modifier
+                .size(16.dp)
+                .border(1.dp, style.colors.text, RoundedCornerShape(3.dp))
+                .background(
+                    if (checked) style.colors.text else style.colors.divider.copy(alpha = 0f),
+                    RoundedCornerShape(3.dp),
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (checked) {
+                BasicText(
+                    text = "✓",
+                    style = style.typography.inlineCode.copy(color = style.colors.codeBackground),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RenderTable(
+    block: Table,
+    modifier: Modifier,
+) {
+    val style = LocalKmdStyle.current
+    val options = LocalKmdOptions.current
+    val onLinkClick = LocalKmdOnLinkClick.current
+    val rows = buildList {
+        add(block.header)
+        addAll(block.rows)
+    }
+    val columnCount = block.header.cells.size
+    if (columnCount == 0) return
+    val shape = RoundedCornerShape(6.dp)
+    val dividerColor = style.colors.divider
+
+    Box(
+        modifier
+            .horizontalScroll(rememberScrollState())
+            .clip(shape)
+            .border(1.dp, dividerColor, shape),
+    ) {
+        TableGrid(
+            columnCount = columnCount,
+            rowCount = rows.size,
+            dividerColor = dividerColor,
+        ) {
+            rows.forEachIndexed { rowIndex, row ->
+                val header = rowIndex == 0
+                val background =
+                    when {
+                        header -> style.colors.codeBackground
+                        (rowIndex - 1) % 2 == 1 -> dividerColor.copy(alpha = 0.25f)
+                        else -> Color.Transparent
+                    }
+                val lastRow = rowIndex == rows.lastIndex
+                repeat(columnCount) { column ->
+                    val cell = row.cells.getOrNull(column)
+                    Box(
+                        Modifier
+                            .background(background)
+                            .drawBehind {
+                                if (!lastRow) {
+                                    val stroke = 1.dp.toPx()
+                                    drawLine(
+                                        color = dividerColor,
+                                        start = Offset(0f, size.height - stroke / 2f),
+                                        end = Offset(size.width, size.height - stroke / 2f),
+                                        strokeWidth = stroke,
+                                    )
+                                }
+                            }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        if (cell != null) {
+                            BasicText(
+                                text = cell.content.toAnnotatedString(style, options, onLinkClick),
+                                style =
+                                    style.typography.paragraph.copy(
+                                        color = style.colors.text,
+                                        fontWeight = if (header) FontWeight.SemiBold else FontWeight.Normal,
+                                    ),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TableGrid(
+    columnCount: Int,
+    rowCount: Int,
+    dividerColor: Color,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Layout(content = content, modifier = modifier) { measurables, constraints ->
+        val loose =
+            constraints.copy(
+                minWidth = 0,
+                minHeight = 0,
+                maxWidth = Constraints.Infinity,
+                maxHeight = Constraints.Infinity,
+            )
+        val firstPass = measurables.map { it.measure(loose) }
+        val columnWidths = IntArray(columnCount)
+        val rowHeights = IntArray(rowCount)
+        firstPass.forEachIndexed { index, placeable ->
+            val column = index % columnCount
+            val row = index / columnCount
+            columnWidths[column] = maxOf(columnWidths[column], placeable.width)
+            rowHeights[row] = maxOf(rowHeights[row], placeable.height)
+        }
+        val secondPass =
+            measurables.mapIndexed { index, measurable ->
+                val column = index % columnCount
+                val row = index / columnCount
+                measurable.measure(Constraints.fixed(columnWidths[column], rowHeights[row]))
+            }
+        layout(columnWidths.sum(), rowHeights.sum()) {
+            var y = 0
+            for (row in 0 until rowCount) {
+                var x = 0
+                for (column in 0 until columnCount) {
+                    secondPass[row * columnCount + column].place(x, y)
+                    x += columnWidths[column]
+                }
+                y += rowHeights[row]
             }
         }
     }

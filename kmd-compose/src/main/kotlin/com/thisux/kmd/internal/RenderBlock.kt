@@ -1,6 +1,8 @@
 package com.thisux.kmd.internal
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -9,15 +11,24 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.text.BasicText
 import com.thisux.kmd.BlockQuote
 import com.thisux.kmd.BulletList
 import com.thisux.kmd.CodeBlock
@@ -26,8 +37,12 @@ import com.thisux.kmd.HorizontalRule
 import com.thisux.kmd.Image
 import com.thisux.kmd.KmdBlock
 import com.thisux.kmd.KmdListItem
+import com.thisux.kmd.KmdOptions
+import com.thisux.kmd.KmdStyle
 import com.thisux.kmd.OrderedList
 import com.thisux.kmd.Paragraph
+import com.thisux.kmd.Table
+import com.thisux.kmd.TableRow
 
 @Composable
 internal fun RenderBlock(
@@ -42,6 +57,7 @@ internal fun RenderBlock(
         is BulletList -> RenderBulletList(block, modifier)
         is OrderedList -> RenderOrderedList(block, modifier)
         is HorizontalRule -> RenderHorizontalRule(modifier)
+        is Table -> RenderTable(block, modifier)
     }
 }
 
@@ -170,12 +186,21 @@ private fun RenderList(
                     start = style.list.indent,
                     bottom = if (index == items.lastIndex) 0.dp else style.list.itemSpacing,
                 ),
+                verticalAlignment = Alignment.Top,
             ) {
-                BasicText(
-                    text = marker(index),
-                    style = style.typography.paragraph.copy(color = style.colors.text),
-                    modifier = Modifier.width(style.list.markerWidth),
-                )
+                val checked = item.checked
+                if (checked != null) {
+                    TaskMarker(
+                        checked = checked,
+                        modifier = Modifier.width(style.list.markerWidth).padding(top = 4.dp),
+                    )
+                } else {
+                    BasicText(
+                        text = marker(index),
+                        style = style.typography.paragraph.copy(color = style.colors.text),
+                        modifier = Modifier.width(style.list.markerWidth),
+                    )
+                }
                 Column(Modifier.weight(1f)) {
                     item.children.forEachIndexed { childIndex, child ->
                         RenderBlock(
@@ -193,6 +218,100 @@ private fun RenderList(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TaskMarker(
+    checked: Boolean,
+    modifier: Modifier,
+) {
+    val style = LocalKmdStyle.current
+    Box(
+        modifier =
+            modifier.semantics {
+                role = Role.Checkbox
+                selected = checked
+                contentDescription = if (checked) "Completed" else "Not completed"
+            },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Box(
+            Modifier
+                .size(16.dp)
+                .border(1.dp, style.colors.text, RoundedCornerShape(3.dp))
+                .background(
+                    if (checked) style.colors.text else style.colors.divider.copy(alpha = 0f),
+                    RoundedCornerShape(3.dp),
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (checked) {
+                BasicText(
+                    text = "✓",
+                    style = style.typography.inlineCode.copy(color = style.colors.codeBackground),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RenderTable(
+    block: Table,
+    modifier: Modifier,
+) {
+    val style = LocalKmdStyle.current
+    val options = LocalKmdOptions.current
+    val onLinkClick = LocalKmdOnLinkClick.current
+    Column(
+        modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .border(1.dp, style.colors.divider, RoundedCornerShape(6.dp)),
+    ) {
+        RenderTableRow(block.header, style, options, onLinkClick, header = true)
+        block.rows.forEachIndexed { index, row ->
+            Box(Modifier.fillMaxWidth().height(1.dp).background(style.colors.divider))
+            RenderTableRow(row, style, options, onLinkClick, header = false, striped = index % 2 == 1)
+        }
+    }
+}
+
+@Composable
+private fun RenderTableRow(
+    row: TableRow,
+    style: KmdStyle,
+    options: KmdOptions,
+    onLinkClick: ((String) -> Unit)?,
+    header: Boolean,
+    striped: Boolean = false,
+) {
+    Row(
+        Modifier.background(
+            if (header) {
+                style.colors.codeBackground
+            } else if (striped) {
+                style.colors.divider.copy(alpha = 0.25f)
+            } else {
+                style.colors.divider.copy(alpha = 0f)
+            },
+        ),
+    ) {
+        row.cells.forEach { cell ->
+            BasicText(
+                text = cell.content.toAnnotatedString(style, options, onLinkClick),
+                style =
+                    style.typography.paragraph.copy(
+                        color = style.colors.text,
+                        fontWeight = if (header) FontWeight.SemiBold else FontWeight.Normal,
+                    ),
+                modifier =
+                    Modifier
+                        .widthIn(min = 88.dp)
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+            )
         }
     }
 }

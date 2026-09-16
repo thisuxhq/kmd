@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import com.thisux.kmd.CoilKmdImageRenderer
 import com.thisux.kmd.KmdKeywordHighlighter
 import com.thisux.kmd.KmdMaterial3
+import com.thisux.kmd.KmdOptions
+import com.thisux.kmd.KmdStreaming
 import com.thisux.kmd.KmdSyntaxHighlighter
 import com.thisux.kmd.LazyKmd
 import com.thisux.kmd.rememberKmdState
@@ -169,6 +171,7 @@ private fun StreamPane() {
                 style = KmdMaterial3.style(),
                 imageRenderer = CoilKmdImageRenderer,
                 syntaxHighlighter = highlighter,
+                options = KmdOptions(streaming = KmdStreaming.Default),
                 onLinkClick = { url ->
                     Toast.makeText(context, url, Toast.LENGTH_SHORT).show()
                 },

@@ -30,6 +30,7 @@ import com.thisux.kmd.CodeBlock
 internal fun RenderCodeBlock(
     block: CodeBlock,
     modifier: Modifier,
+    showCaret: Boolean = false,
 ) {
     val style = LocalKmdStyle.current
     val highlighter = LocalKmdSyntaxHighlighter.current
@@ -68,10 +69,11 @@ internal fun RenderCodeBlock(
             )
         }
         Spacer(Modifier.height(8.dp))
-        BasicText(
+        KmdText(
             text = highlighted,
             style = style.typography.codeBlock.copy(color = style.colors.text),
             modifier = Modifier.horizontalScroll(rememberScrollState()),
+            showCaret = showCaret,
         )
     }
 }

@@ -43,8 +43,9 @@ fun Kmd(
     syntaxHighlighter: KmdSyntaxHighlighter? = null,
     renderers: KmdRenderers = KmdRenderers.Default,
 ) {
+    val snapshot = state.snapshot()
     RenderDocument(
-        document = state.document,
+        document = snapshot.document,
         modifier = modifier,
         style = style,
         options = options,
@@ -52,5 +53,6 @@ fun Kmd(
         imageRenderer = imageRenderer,
         syntaxHighlighter = syntaxHighlighter,
         renderers = renderers,
+        activeBlock = snapshot.activeBlock,
     )
 }

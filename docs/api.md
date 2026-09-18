@@ -166,14 +166,14 @@ Default image renderer: alt text / placeholder until the host supplies a loader.
 Kmd(
     markdown = markdown,
     renderers = KmdRenderers {
-        codeBlock { block ->
-            MyCodeBlock(block.code)
+        codeBlock { block, modifier ->
+            MyCodeBlock(block.code, modifier)
         }
     }
 )
 ```
 
-Overridable blocks:
+Overridable nodes:
 
 ```text
 heading
@@ -185,9 +185,12 @@ quote
 bullet list
 ordered list
 horizontal rule
+link
+inline code
+checkbox
 ```
 
-Link, inline code, and checkbox overrides are not shipped yet. Overrides do not yet receive the `Modifier` KMD would have applied.
+Every override receives the `Modifier` KMD would have applied (spacing, enter animation). Apply it. Replacing a block means replacing its semantics too.
 
 ---
 

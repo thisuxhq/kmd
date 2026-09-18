@@ -80,9 +80,9 @@ Individual blocks are replaceable without a full extension:
 Kmd(
     markdown = markdown,
     renderers = KmdRenderers {
-        codeBlock { block -> MyCodeBlock(block.code) }
-        link { link -> MyLink(link) }
-        image { image -> MyImage(image) }
+        codeBlock { block, modifier -> MyCodeBlock(block.code, modifier) }
+        link { link, modifier -> MyLink(link, modifier) }
+        image { image, modifier -> MyImage(image, modifier) }
     }
 )
 ```

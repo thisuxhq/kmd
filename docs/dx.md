@@ -186,10 +186,10 @@ Users can replace the pieces that always differ by app:
 ```kotlin
 Kmd(
     markdown = markdown,
-    renderers = {
-        link { link -> MyLink(link) }
-        image { image -> MyImage(image) }
-        codeBlock { block -> MyCodeBlock(block.code) }
+    renderers = KmdRenderers {
+        link { link, modifier -> MyLink(link, modifier) }
+        image { image, modifier -> MyImage(image, modifier) }
+        codeBlock { block, modifier -> MyCodeBlock(block.code, modifier) }
     }
 )
 ```

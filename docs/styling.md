@@ -101,9 +101,9 @@ If the UI structure is wrong for the app, replace the renderer:
 ```kotlin
 Kmd(
     markdown = markdown,
-    renderers = {
-        codeBlock { block -> MyCodeBlock(block.code) }
-        quote { quote -> MyCallout(quote) }
+    renderers = KmdRenderers {
+        codeBlock { block, modifier -> MyCodeBlock(block.code, modifier) }
+        quote { quote, modifier -> MyCallout(quote, modifier) }
     }
 )
 ```

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -119,9 +120,10 @@ internal fun KmdText(
     style: TextStyle,
     modifier: Modifier = Modifier,
     showCaret: Boolean = false,
+    inlineContent: Map<String, InlineTextContent> = emptyMap(),
 ) {
     if (!showCaret) {
-        BasicText(text = text, style = style, modifier = modifier)
+        BasicText(text = text, style = style, modifier = modifier, inlineContent = inlineContent)
         return
     }
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -130,6 +132,7 @@ internal fun KmdText(
             text = text,
             style = style,
             modifier = Modifier.fillMaxWidth(),
+            inlineContent = inlineContent,
             onTextLayout = { layout = it },
         )
         val laidOut = layout

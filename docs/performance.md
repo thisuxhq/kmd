@@ -102,7 +102,7 @@ Kmd(...)      // default, fine for chat bubbles and short docs
 LazyKmd(...)  // large READMEs, knowledge bases
 ```
 
-`LazyKmd` is Phase 2. Identities in V1 must already be lazy-safe.
+`LazyKmd` is shipped. Identities must stay lazy-safe.
 
 ---
 
@@ -112,10 +112,13 @@ On `append`:
 
 ```text
 do not rebuild finalized AST nodes
+do not reparse the finished prefix
 do not copy the whole block list if we can avoid it
 do not allocate style objects
 do not create new Compose keys for stable blocks
 ```
+
+Identity rematch already keeps keys. The engine still reparses the whole buffer. Incremental parse of the tail is the next cut.
 
 The cheap path is: grow or replace the tail, bump revision, emit a snapshot.
 

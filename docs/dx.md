@@ -101,9 +101,10 @@ KmdStyle
 KmdOptions
 KmdState
 KmdDocument          // snapshot / advanced
-KmdRenderers         // phase 2
-KmdImageRenderer     // phase 2
-KmdSyntaxHighlighter // phase 2
+KmdRenderers
+KmdImageRenderer
+KmdSyntaxHighlighter
+LazyKmd
 ```
 
 Parser nodes never appear.
@@ -180,7 +181,7 @@ state.snapshot()
 
 ## Replacement without forking
 
-Phase 2 lets users replace the pieces that always differ by app:
+Users can replace the pieces that always differ by app:
 
 ```kotlin
 Kmd(

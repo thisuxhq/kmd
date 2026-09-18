@@ -76,7 +76,7 @@ images
 anchor links
 ```
 
-Most of that is Phase 2. V1 should still render a README cleanly.
+LazyKmd, tables, and images are shipped. V1 still has to render a README cleanly.
 
 ---
 

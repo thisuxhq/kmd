@@ -2,7 +2,7 @@
 
 V1 covers CommonMark-shaped documents that actually appear in apps.
 
-GFM waits for Phase 2 unless a piece is free.
+GFM is on: strikethrough, task lists, tables, and autolinks.
 
 ---
 
@@ -114,7 +114,7 @@ Example:
 
 The AST keeps hierarchy. Nested lists are children, not a flattened stream of bullets.
 
-Task lists are GFM. They are not V1.
+Task lists are GFM and are on.
 
 ---
 
@@ -135,7 +135,9 @@ KMD never auto-executes protocols.
 
 ---
 
-## Phase 2 — GFM
+## GFM
+
+Shipped in core. Not a separate module.
 
 ```text
 strikethrough

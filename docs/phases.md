@@ -120,7 +120,7 @@ If it does not serve that sentence, it waits.
 
 ## Phase 2 — GFM and replacement points
 
-**Goal:** GitHub-flavored content looks native, and every visually important block can be replaced.
+**Shipped.** GitHub-flavored content looks native, and visually important blocks can be replaced.
 
 ### GFM
 
@@ -130,6 +130,8 @@ task lists
 tables
 autolinks
 ```
+
+Landed in `kmd-core` / `kmd-compose`, not a separate `kmd-gfm` artifact. Always on.
 
 Task lists render as real Compose checkboxes, not emoji.
 
@@ -142,29 +144,26 @@ Kmd(
     markdown = markdown,
     renderers = KmdRenderers {
         codeBlock { block -> MyCodeBlock(block.code) }
-        link { link -> MyLink(link) }
         image { image -> MyImage(image) }
     }
 )
 ```
 
-Possible overrides:
+Shipped overrides:
 
 ```text
 heading
 paragraph
 code block
-inline code
 image
-link
 table
 quote
-list
-checkbox
+bullet list
+ordered list
 horizontal rule
 ```
 
-This is one of KMD's biggest advantages. It should feel first-class, not bolted on.
+Still open: pass `Modifier` into overrides; replace link, inline code, and checkbox.
 
 ### Images
 
@@ -172,15 +171,7 @@ This is one of KMD's biggest advantages. It should feel first-class, not bolted 
 interface KmdImageRenderer
 ```
 
-Optional adapters later:
-
-```text
-Coil
-Kamel
-custom loader
-```
-
-Core still does not depend on Coil.
+`kmd-images` ships a Coil adapter. Core still does not depend on Coil.
 
 ### Syntax highlighting
 
@@ -190,7 +181,9 @@ interface KmdSyntaxHighlighter {
 }
 ```
 
-Possible implementations:
+`kmd-highlight` ships a small keyword highlighter. Default remains plain text.
+
+Possible later implementations:
 
 ```text
 Tree-sitter
@@ -199,39 +192,36 @@ custom highlighter
 remote Shiki
 ```
 
-Default remains plain text.
-
 ### Lazy rendering
 
-Do not force `LazyColumn` on `Kmd`.
-
-Add:
+`Kmd` is still a normal column. Large documents use:
 
 ```kotlin
 LazyKmd(markdown = readme)
 ```
 
-for large documents, keyed by stable block identity.
+keyed by stable block identity.
 
 ### Selection
 
-Verify `SelectionContainer { Kmd(markdown) }` across Android, iOS, Desktop, and Web before promising full cross-block selection.
+`SelectionContainer { Kmd(markdown) }` works on Android. Do not promise full cross-block selection on every target until it is verified.
 
-### New modules
+### Modules that exist
 
 ```text
-kmd-gfm
 kmd-images
 kmd-highlight
 ```
 
-Streaming may stay in core. Split `kmd-streaming` only if the engine deserves its own artifact.
+Streaming stays in core. Split `kmd-streaming` only if the engine deserves its own artifact.
 
 ---
 
 ## Phase 3 — Extensions and depth
 
 **Goal:** KMD is the Markdown engine people build on, not just the one they drop in.
+
+Close the shipped-product gaps first: incremental append, accessibility, the rest of the renderer API, then `KmdExtension`. Math and Mermaid wait.
 
 ### Extension API
 

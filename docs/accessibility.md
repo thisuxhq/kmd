@@ -58,8 +58,6 @@ The image renderer is pluggable. Any Coil / Kamel adapter must pass alt through.
 
 ## Task lists
 
-Phase 2.
-
 ```md
 - [x] Build parser
 - [ ] Build renderer
@@ -116,6 +114,6 @@ If a renderer animates, it should respect `Modifier` / platform reduced-motion c
 
 The registry is how apps break a11y.
 
-Phase 2 docs should say: replacing a block means replacing its semantics too.
+Replacing a block means replacing its semantics too.
 
 KMD can make the default path correct. It cannot save a renderer that draws a link as non-clickable text.

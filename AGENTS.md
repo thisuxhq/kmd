@@ -14,13 +14,17 @@ Kmd("# Hello")
 
 ```text
 kmd-core/                 AST, parser adapter, streaming engine
-kmd-compose/              Compose renderer, Kmd(), KmdStyle (no Material)
+kmd-compose/              Compose renderer, Kmd(), KmdStyle, LazyKmd (no Material)
 kmd-compose-material3/    KmdMaterial3.style()
-sample/                   Android demo (Document + Stream)
+kmd-images/               Coil image loader
+kmd-highlight/            keyword syntax highlighter
+sample/                   Android demo (Document + Stream + Settings)
 docs/                     product source of truth
 ```
 
 Package: `com.thisux.kmd`
+
+GFM (strikethrough, task lists, tables, autolinks) lives in `kmd-core` / `kmd-compose`, not a separate artifact.
 
 ---
 
@@ -156,14 +160,14 @@ gh label create "<name>" --description "<one line>" --color "<hex>"
 
 ## Next
 
-Phase 1 is the core engine and sample.
+Phase 1 and Phase 2 have shipped.
 
-Phase 2, in order:
+Phase 3, in order:
 
-1. GFM — strikethrough, task lists, tables, autolinks
-2. Renderer registry — replace heading, code, link, image, table, …
-3. Images — `KmdImageRenderer` wired for real loaders
-4. Highlight — `KmdSyntaxHighlighter` default still plain text
-5. `LazyKmd` — keyed by `KmdBlockId`, not forced on `Kmd`
+1. Incremental append — parse the tail, not the whole buffer
+2. Accessibility — heading level, lists, tasks, tables
+3. Renderer registry — pass `Modifier`; override link, inline code, checkbox
+4. Extension API — `KmdExtension`, custom blocks, GitHub alerts
+5. `kmd-benchmark` — prove stable blocks do not recompose on append
 
-Do not start Phase 3 while those are open.
+Do not start math or Mermaid while those are open.

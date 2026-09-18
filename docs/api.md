@@ -162,8 +162,6 @@ Default image renderer: alt text / placeholder until the host supplies a loader.
 
 ## Renderer registry
 
-Phase 2.
-
 ```kotlin
 Kmd(
     markdown = markdown,
@@ -175,39 +173,27 @@ Kmd(
 )
 ```
 
-Or:
-
-```kotlin
-Kmd(
-    markdown = markdown,
-    renderers = {
-        link { link -> MyLink(link) }
-        image { image -> MyImage(image) }
-    }
-)
-```
-
 Overridable blocks:
 
 ```text
 heading
 paragraph
 code block
-inline code
 image
-link
 table
 quote
-list
-checkbox
+bullet list
+ordered list
 horizontal rule
 ```
+
+Link, inline code, and checkbox overrides are not shipped yet. Overrides do not yet receive the `Modifier` KMD would have applied.
 
 ---
 
 ## Lazy API
 
-Later, not forced on the default composable:
+Not forced on the default composable:
 
 ```kotlin
 LazyKmd(

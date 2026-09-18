@@ -45,12 +45,15 @@ leak parser types
 
 | Extension | When | What |
 |---|---|---|
-| GFM | Phase 2 | strikethrough, task lists, tables, autolinks |
-| Images | Phase 2 | Coil / Kamel / custom loaders |
-| Highlight | Phase 2 | Tree-sitter, TextMate, Shiki, custom |
+| GFM | shipped in core | strikethrough, task lists, tables, autolinks |
+| Images | shipped (`kmd-images`) | Coil adapter; custom loaders via `KmdImageRenderer` |
+| Highlight | shipped (`kmd-highlight`) | keyword highlighter; Tree-sitter / TextMate / Shiki later |
+| Alerts | next | GitHub `> [!NOTE]` / `:::warning` as custom blocks |
 | Math | later | formulas as native UI or a supplied renderer |
 | Mermaid | later | diagrams, host-supplied renderer |
 | Directives | later | `:::warning` custom blocks |
+
+GFM was meant to prove `KmdExtension`. It landed as parser + renderer work in core instead. The extension API is still the next foundation — alerts should not patch core the same way.
 
 ---
 
@@ -71,7 +74,7 @@ The AST grows a node. The registry supplies the UI. Core does not know what a wa
 
 ## Renderer registry
 
-Phase 2 makes individual blocks replaceable without a full extension:
+Individual blocks are replaceable without a full extension:
 
 ```kotlin
 Kmd(
@@ -147,18 +150,11 @@ Do not ship a large highlighter inside core.
 
 ## GFM as the first real extension
 
-GFM is the test of the extension API.
+GFM was supposed to be the test of the extension API.
 
-If tables, task lists, and strikethrough cannot land without patching core renderers by hand, the API is wrong.
+It did not wait. Tables, task lists, strikethrough, and autolinks are built into `kmd-core` and `kmd-compose`.
 
-They should:
-
-```text
-add nodes
-add renderers
-reuse style
-keep streaming identities
-```
+That is acceptable for syntax everyone needs. It is not the pattern for alerts, math, or directives. Those must add nodes and renderers without patching core by hand.
 
 ---
 

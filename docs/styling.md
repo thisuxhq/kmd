@@ -96,7 +96,7 @@ Those are renderers, loaders, and callbacks. See [API](api.md).
 
 If changing colors is enough, use `KmdStyle`.
 
-If the UI structure is wrong for the app, replace the renderer (Phase 2):
+If the UI structure is wrong for the app, replace the renderer:
 
 ```kotlin
 Kmd(

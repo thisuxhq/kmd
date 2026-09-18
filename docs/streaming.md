@@ -71,14 +71,16 @@ is changing.
 
 ## The path
 
-KMD:
+Today KMD reparses the whole buffer on `append`, then rematches identities so finished blocks keep their keys.
+
+The intended path:
 
 ```text
 token
  ↓
 identify active block
  ↓
-parse active block
+parse the tail
  ↓
 update block
  ↓

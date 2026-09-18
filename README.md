@@ -6,12 +6,14 @@ Native Markdown for Compose.
 Kmd("# Hello")
 ```
 
-Phase 1 modules:
+Modules:
 
 ```text
 kmd-core
 kmd-compose
 kmd-compose-material3
+kmd-images
+kmd-highlight
 sample
 ```
 

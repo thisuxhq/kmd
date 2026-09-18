@@ -44,30 +44,27 @@ The parser is behind an adapter. The renderer never sees parser types.
 
 ## Modules
 
-Start with:
+Now:
 
 ```text
 kmd-core
 kmd-compose
 kmd-compose-material3
+kmd-images
+kmd-highlight
 ```
+
+GFM is not its own module. Tables, task lists, strikethrough, and autolinks live in core and compose.
 
 Later:
 
 ```text
-kmd-images
-kmd-highlight
-kmd-gfm
 kmd-math
-kmd-streaming
-```
-
-Eventually:
-
-```text
 kmd-test
 kmd-benchmark
 ```
+
+Streaming stays in core. Split `kmd-streaming` only if the engine deserves its own artifact.
 
 Repository:
 
@@ -76,8 +73,9 @@ kmd/
 ├── kmd-core/
 ├── kmd-compose/
 ├── kmd-compose-material3/
+├── kmd-images/
+├── kmd-highlight/
 ├── sample/
-├── benchmark/
 ├── docs/
 └── gradle/
 ```
@@ -260,9 +258,9 @@ when (block) {
 }
 ```
 
-Hardcoding this is fine for V1. Phase 2 replaces the `when` with a registry.
+Phase 2 replaced the hardcoded `when` with a registry. Defaults still live in `kmd-compose`.
 
-KMD should not force `LazyColumn`. Default `Kmd` can be a normal column. `LazyKmd` is a later API for large documents.
+KMD does not force `LazyColumn`. Default `Kmd` is a normal column. `LazyKmd` is the API for large documents.
 
 ---
 
@@ -275,7 +273,7 @@ Keep these separate:
 | Document shape | `kmd-core` AST | no |
 | Parse | `KmdParser` | yes, internally |
 | Colors, type, space | `KmdStyle` | yes, immediately |
-| Block UI | renderer registry | yes, phase 2 |
+| Block UI | renderer registry | yes |
 | Images | `KmdImageRenderer` | yes |
 | Highlighting | `KmdSyntaxHighlighter` | yes |
 | Material mapping | `kmd-compose-material3` | optional module |
@@ -307,9 +305,8 @@ Extensions may add AST nodes and renderers. They should not force core to know a
 kmd-core            → Kotlin only
 kmd-compose         → kmd-core + Compose
 kmd-compose-material3 → kmd-compose + Material 3
-kmd-images          → kmd-compose + optional Coil / Kamel
+kmd-images          → kmd-compose + Coil
 kmd-highlight       → kmd-compose + a highlighter
-kmd-gfm             → kmd-core (+ compose renderers)
 ```
 
 Nothing in core depends on Coil, Material, a syntax engine, or a browser.

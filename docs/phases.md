@@ -143,13 +143,13 @@ Tables render as native rows and cells, with horizontal scrolling for wide conte
 Kmd(
     markdown = markdown,
     renderers = KmdRenderers {
-        codeBlock { block -> MyCodeBlock(block.code) }
-        image { image -> MyImage(image) }
+        codeBlock { block, modifier -> MyCodeBlock(block.code, modifier) }
+        image { image, modifier -> MyImage(image, modifier) }
     }
 )
 ```
 
-Shipped overrides:
+Overrides receive `Modifier` and cover:
 
 ```text
 heading
@@ -161,9 +161,10 @@ quote
 bullet list
 ordered list
 horizontal rule
+link
+inline code
+checkbox
 ```
-
-Still open: pass `Modifier` into overrides; replace link, inline code, and checkbox.
 
 ### Images
 
@@ -223,7 +224,7 @@ Streaming stays in core. Split `kmd-streaming` only if the engine deserves its o
 
 Incremental append is shipped: `append` reparses the tail, not the whole buffer.
 
-Still open: the rest of the renderer API, then `KmdExtension`. Math and Mermaid wait.
+Still open: `KmdExtension`. Math and Mermaid wait.
 
 ### Extension API
 

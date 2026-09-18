@@ -44,8 +44,10 @@ import com.thisux.kmd.BulletList
 import com.thisux.kmd.CodeBlock
 import com.thisux.kmd.Heading
 import com.thisux.kmd.HorizontalRule
+import androidx.compose.ui.text.TextStyle
 import com.thisux.kmd.Image
 import com.thisux.kmd.KmdBlock
+import com.thisux.kmd.KmdInline
 import com.thisux.kmd.KmdListItem
 import com.thisux.kmd.KmdOptions
 import com.thisux.kmd.KmdStyle
@@ -93,13 +95,13 @@ internal fun RenderBlock(
 
 @Composable
 private fun <T> RenderOrOverride(
-    override: (@Composable (T) -> Unit)?,
+    override: (@Composable (T, Modifier) -> Unit)?,
     block: T,
     modifier: Modifier,
     default: @Composable (Modifier) -> Unit,
 ) {
     if (override != null) {
-        Box(modifier) { override(block) }
+        override(block, modifier)
     } else {
         default(modifier)
     }
@@ -112,8 +114,6 @@ private fun RenderHeading(
     showCaret: Boolean = false,
 ) {
     val style = LocalKmdStyle.current
-    val options = LocalKmdOptions.current
-    val onLinkClick = LocalKmdOnLinkClick.current
     val textStyle =
         when (block.level) {
             1 -> style.typography.h1
@@ -123,9 +123,9 @@ private fun RenderHeading(
             5 -> style.typography.h5
             else -> style.typography.h6
         }
-    KmdText(
-        text = block.content.toAnnotatedString(style, options, onLinkClick),
-        style = textStyle.copy(color = style.colors.text),
+    RenderInlines(
+        content = block.content,
+        textStyle = textStyle.copy(color = style.colors.text),
         modifier =
             modifier
                 .fillMaxWidth()
@@ -135,6 +135,27 @@ private fun RenderHeading(
                     kmdHeadingLevel = block.level
                 },
         showCaret = showCaret,
+    )
+}
+
+@Composable
+private fun RenderInlines(
+    content: List<KmdInline>,
+    textStyle: TextStyle,
+    modifier: Modifier,
+    showCaret: Boolean = false,
+) {
+    val style = LocalKmdStyle.current
+    val options = LocalKmdOptions.current
+    val onLinkClick = LocalKmdOnLinkClick.current
+    val renderers = LocalKmdRenderers.current
+    val layout = content.toInlineLayout(style, options, onLinkClick, renderers)
+    KmdText(
+        text = layout.text,
+        style = textStyle,
+        modifier = modifier,
+        showCaret = showCaret,
+        inlineContent = layout.inlineContent,
     )
 }
 
@@ -150,11 +171,9 @@ private fun RenderParagraph(
         return
     }
     val style = LocalKmdStyle.current
-    val options = LocalKmdOptions.current
-    val onLinkClick = LocalKmdOnLinkClick.current
-    KmdText(
-        text = block.content.toAnnotatedString(style, options, onLinkClick),
-        style = style.typography.paragraph.copy(color = style.colors.text),
+    RenderInlines(
+        content = block.content,
+        textStyle = style.typography.paragraph.copy(color = style.colors.text),
         modifier = modifier.fillMaxWidth(),
         showCaret = showCaret,
     )
@@ -258,10 +277,13 @@ private fun RenderList(
             ) {
                 val checked = item.checked
                 if (checked != null) {
-                    TaskMarker(
-                        checked = checked,
-                        modifier = Modifier.width(style.list.markerWidth).padding(top = 4.dp),
-                    )
+                    val checkboxModifier = Modifier.width(style.list.markerWidth).padding(top = 4.dp)
+                    val checkbox = LocalKmdRenderers.current.checkbox
+                    if (checkbox != null) {
+                        checkbox(checked, checkboxModifier)
+                    } else {
+                        TaskMarker(checked = checked, modifier = checkboxModifier)
+                    }
                 } else {
                     BasicText(
                         text = marker(index),
@@ -330,8 +352,6 @@ private fun RenderTable(
     modifier: Modifier,
 ) {
     val style = LocalKmdStyle.current
-    val options = LocalKmdOptions.current
-    val onLinkClick = LocalKmdOnLinkClick.current
     val rows = buildList {
         add(block.header)
         addAll(block.rows)
@@ -394,13 +414,14 @@ private fun RenderTable(
                         contentAlignment = Alignment.CenterStart,
                     ) {
                         if (cell != null) {
-                            BasicText(
-                                text = cell.content.toAnnotatedString(style, options, onLinkClick),
-                                style =
+                            RenderInlines(
+                                content = cell.content,
+                                textStyle =
                                     style.typography.paragraph.copy(
                                         color = style.colors.text,
                                         fontWeight = if (header) FontWeight.SemiBold else FontWeight.Normal,
                                     ),
+                                modifier = Modifier,
                             )
                         }
                     }
@@ -470,7 +491,7 @@ private fun RenderImage(
 ) {
     val fromRegistry = LocalKmdRenderers.current.image
     if (fromRegistry != null) {
-        Box(modifier.fillMaxWidth()) { fromRegistry(image) }
+        fromRegistry(image, modifier.fillMaxWidth())
         return
     }
     val renderer = LocalKmdImageRenderer.current

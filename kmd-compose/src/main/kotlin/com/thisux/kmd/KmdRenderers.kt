@@ -5,15 +5,18 @@ import androidx.compose.ui.Modifier
 import com.thisux.kmd.internal.RenderBlock
 
 class KmdRenderers internal constructor(
-    internal val heading: (@Composable (Heading) -> Unit)? = null,
-    internal val paragraph: (@Composable (Paragraph) -> Unit)? = null,
-    internal val codeBlock: (@Composable (CodeBlock) -> Unit)? = null,
-    internal val quote: (@Composable (BlockQuote) -> Unit)? = null,
-    internal val bulletList: (@Composable (BulletList) -> Unit)? = null,
-    internal val orderedList: (@Composable (OrderedList) -> Unit)? = null,
-    internal val table: (@Composable (Table) -> Unit)? = null,
-    internal val horizontalRule: (@Composable (HorizontalRule) -> Unit)? = null,
-    internal val image: (@Composable (Image) -> Unit)? = null,
+    internal val heading: (@Composable (Heading, Modifier) -> Unit)? = null,
+    internal val paragraph: (@Composable (Paragraph, Modifier) -> Unit)? = null,
+    internal val codeBlock: (@Composable (CodeBlock, Modifier) -> Unit)? = null,
+    internal val quote: (@Composable (BlockQuote, Modifier) -> Unit)? = null,
+    internal val bulletList: (@Composable (BulletList, Modifier) -> Unit)? = null,
+    internal val orderedList: (@Composable (OrderedList, Modifier) -> Unit)? = null,
+    internal val table: (@Composable (Table, Modifier) -> Unit)? = null,
+    internal val horizontalRule: (@Composable (HorizontalRule, Modifier) -> Unit)? = null,
+    internal val image: (@Composable (Image, Modifier) -> Unit)? = null,
+    internal val link: (@Composable (Link, Modifier) -> Unit)? = null,
+    internal val inlineCode: (@Composable (InlineCode, Modifier) -> Unit)? = null,
+    internal val checkbox: (@Composable (Boolean, Modifier) -> Unit)? = null,
 ) {
     companion object {
         val Default: KmdRenderers = KmdRenderers()
@@ -21,50 +24,65 @@ class KmdRenderers internal constructor(
 }
 
 class KmdRenderersBuilder @PublishedApi internal constructor() {
-    private var heading: (@Composable (Heading) -> Unit)? = null
-    private var paragraph: (@Composable (Paragraph) -> Unit)? = null
-    private var codeBlock: (@Composable (CodeBlock) -> Unit)? = null
-    private var quote: (@Composable (BlockQuote) -> Unit)? = null
-    private var bulletList: (@Composable (BulletList) -> Unit)? = null
-    private var orderedList: (@Composable (OrderedList) -> Unit)? = null
-    private var table: (@Composable (Table) -> Unit)? = null
-    private var horizontalRule: (@Composable (HorizontalRule) -> Unit)? = null
-    private var image: (@Composable (Image) -> Unit)? = null
+    private var heading: (@Composable (Heading, Modifier) -> Unit)? = null
+    private var paragraph: (@Composable (Paragraph, Modifier) -> Unit)? = null
+    private var codeBlock: (@Composable (CodeBlock, Modifier) -> Unit)? = null
+    private var quote: (@Composable (BlockQuote, Modifier) -> Unit)? = null
+    private var bulletList: (@Composable (BulletList, Modifier) -> Unit)? = null
+    private var orderedList: (@Composable (OrderedList, Modifier) -> Unit)? = null
+    private var table: (@Composable (Table, Modifier) -> Unit)? = null
+    private var horizontalRule: (@Composable (HorizontalRule, Modifier) -> Unit)? = null
+    private var image: (@Composable (Image, Modifier) -> Unit)? = null
+    private var link: (@Composable (Link, Modifier) -> Unit)? = null
+    private var inlineCode: (@Composable (InlineCode, Modifier) -> Unit)? = null
+    private var checkbox: (@Composable (Boolean, Modifier) -> Unit)? = null
 
-    fun heading(renderer: @Composable (Heading) -> Unit) {
+    fun heading(renderer: @Composable (Heading, Modifier) -> Unit) {
         heading = renderer
     }
 
-    fun paragraph(renderer: @Composable (Paragraph) -> Unit) {
+    fun paragraph(renderer: @Composable (Paragraph, Modifier) -> Unit) {
         paragraph = renderer
     }
 
-    fun codeBlock(renderer: @Composable (CodeBlock) -> Unit) {
+    fun codeBlock(renderer: @Composable (CodeBlock, Modifier) -> Unit) {
         codeBlock = renderer
     }
 
-    fun quote(renderer: @Composable (BlockQuote) -> Unit) {
+    fun quote(renderer: @Composable (BlockQuote, Modifier) -> Unit) {
         quote = renderer
     }
 
-    fun bulletList(renderer: @Composable (BulletList) -> Unit) {
+    fun bulletList(renderer: @Composable (BulletList, Modifier) -> Unit) {
         bulletList = renderer
     }
 
-    fun orderedList(renderer: @Composable (OrderedList) -> Unit) {
+    fun orderedList(renderer: @Composable (OrderedList, Modifier) -> Unit) {
         orderedList = renderer
     }
 
-    fun table(renderer: @Composable (Table) -> Unit) {
+    fun table(renderer: @Composable (Table, Modifier) -> Unit) {
         table = renderer
     }
 
-    fun horizontalRule(renderer: @Composable (HorizontalRule) -> Unit) {
+    fun horizontalRule(renderer: @Composable (HorizontalRule, Modifier) -> Unit) {
         horizontalRule = renderer
     }
 
-    fun image(renderer: @Composable (Image) -> Unit) {
+    fun image(renderer: @Composable (Image, Modifier) -> Unit) {
         image = renderer
+    }
+
+    fun link(renderer: @Composable (Link, Modifier) -> Unit) {
+        link = renderer
+    }
+
+    fun inlineCode(renderer: @Composable (InlineCode, Modifier) -> Unit) {
+        inlineCode = renderer
+    }
+
+    fun checkbox(renderer: @Composable (Boolean, Modifier) -> Unit) {
+        checkbox = renderer
     }
 
     internal fun build(): KmdRenderers {
@@ -78,6 +96,9 @@ class KmdRenderersBuilder @PublishedApi internal constructor() {
             table = table,
             horizontalRule = horizontalRule,
             image = image,
+            link = link,
+            inlineCode = inlineCode,
+            checkbox = checkbox,
         )
     }
 }

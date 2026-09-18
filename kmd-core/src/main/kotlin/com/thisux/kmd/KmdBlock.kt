@@ -61,3 +61,10 @@ data class KmdListItem(
     val children: List<KmdBlock>,
     val checked: Boolean? = null,
 )
+
+data class CustomBlock(
+    override val id: KmdBlockId,
+    val name: String,
+    val children: List<KmdBlock>,
+    val data: Map<String, String> = emptyMap(),
+) : KmdBlock

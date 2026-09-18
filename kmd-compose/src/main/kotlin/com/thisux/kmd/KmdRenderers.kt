@@ -17,6 +17,7 @@ class KmdRenderers internal constructor(
     internal val link: (@Composable (Link, Modifier) -> Unit)? = null,
     internal val inlineCode: (@Composable (InlineCode, Modifier) -> Unit)? = null,
     internal val checkbox: (@Composable (Boolean, Modifier) -> Unit)? = null,
+    internal val custom: Map<String, @Composable (CustomBlock, Modifier) -> Unit> = emptyMap(),
 ) {
     companion object {
         val Default: KmdRenderers = KmdRenderers()
@@ -36,6 +37,7 @@ class KmdRenderersBuilder @PublishedApi internal constructor() {
     private var link: (@Composable (Link, Modifier) -> Unit)? = null
     private var inlineCode: (@Composable (InlineCode, Modifier) -> Unit)? = null
     private var checkbox: (@Composable (Boolean, Modifier) -> Unit)? = null
+    private val custom = mutableMapOf<String, @Composable (CustomBlock, Modifier) -> Unit>()
 
     fun heading(renderer: @Composable (Heading, Modifier) -> Unit) {
         heading = renderer
@@ -85,6 +87,10 @@ class KmdRenderersBuilder @PublishedApi internal constructor() {
         checkbox = renderer
     }
 
+    fun custom(name: String, renderer: @Composable (CustomBlock, Modifier) -> Unit) {
+        custom[name] = renderer
+    }
+
     internal fun build(): KmdRenderers {
         return KmdRenderers(
             heading = heading,
@@ -99,6 +105,7 @@ class KmdRenderersBuilder @PublishedApi internal constructor() {
             link = link,
             inlineCode = inlineCode,
             checkbox = checkbox,
+            custom = custom.toMap(),
         )
     }
 }

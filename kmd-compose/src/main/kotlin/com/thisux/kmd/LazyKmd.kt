@@ -23,12 +23,13 @@ fun LazyKmd(
     imageRenderer: KmdImageRenderer? = null,
     syntaxHighlighter: KmdSyntaxHighlighter? = null,
     renderers: KmdRenderers = KmdRenderers.Default,
+    extensions: List<KmdExtension> = emptyList(),
     state: LazyListState = rememberLazyListState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     val document =
-        remember(markdown) {
-            KmdEngine().parse(markdown)
+        remember(markdown, extensions) {
+            KmdEngine(extensions = extensions).parse(markdown)
         }
     LazyKmdDocument(
         document = document,

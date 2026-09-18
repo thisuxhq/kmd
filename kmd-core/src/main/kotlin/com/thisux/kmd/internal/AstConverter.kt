@@ -109,6 +109,7 @@ internal class AstConverter(
                 MarkdownTokenTypes.HORIZONTAL_RULE ->
                     blocks += HorizontalRule(unassigned)
                 GFMElementTypes.TABLE -> table(node)?.let { blocks += it }
+                GFMElementTypes.ALERT -> alertQuote(node)?.let { blocks += it }
                 MarkdownElementTypes.MARKDOWN_FILE ->
                     blocks += convertBlocks(node.children)
                 MarkdownElementTypes.LIST_ITEM -> {
@@ -120,6 +121,19 @@ internal class AstConverter(
             }
         }
         return blocks
+    }
+
+    private fun alertQuote(node: ASTNode): BlockQuote? {
+        val title = node.child(GFMTokenTypes.ALERT_TITLE)?.text()?.trim()
+        val children = convertBlocks(node.children)
+        val withTitle =
+            if (title.isNullOrEmpty()) {
+                children
+            } else {
+                listOf(Paragraph(unassigned, listOf(Text(title)))) + children
+            }
+        if (withTitle.isEmpty()) return null
+        return BlockQuote(unassigned, withTitle)
     }
 
     private fun heading(node: ASTNode, level: Int): Heading {
@@ -275,6 +289,7 @@ internal class AstConverter(
             GFMTokenTypes.TABLE_SEPARATOR,
             GFMTokenTypes.CHECK_BOX,
             GFMTokenTypes.DOLLAR,
+            GFMTokenTypes.ALERT_TITLE,
             -> Unit
             else -> {
                 if (node.children.isNotEmpty()) {
@@ -297,9 +312,13 @@ internal class AstConverter(
     private fun referenceLink(node: ASTNode): KmdInline {
         val textNode = node.child(MarkdownElementTypes.LINK_TEXT)
         val labelNode = node.child(MarkdownElementTypes.LINK_LABEL) ?: textNode
-        val label = labelNode?.let { normalizeLabel(it.text()) }
+        val rawLabel = labelNode?.text()?.trim()?.trim('[', ']')
+        val label = rawLabel?.let(::normalizeLabel)
         val destination = label?.let { references[it] }.orEmpty()
-        val children = textNode?.let(::convertInlines).orEmpty()
+        val children =
+            textNode?.let(::convertInlines).orEmpty().ifEmpty {
+                rawLabel?.let { listOf(Text(it)) }.orEmpty()
+            }
         return Link(destination, children)
     }
 

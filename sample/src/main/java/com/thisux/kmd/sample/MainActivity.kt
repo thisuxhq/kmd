@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.thisux.kmd.CoilKmdImageRenderer
+import com.thisux.kmd.GfmAlerts
 import com.thisux.kmd.KmdKeywordHighlighter
 import com.thisux.kmd.KmdMaterial3
 import com.thisux.kmd.KmdOptions
@@ -137,6 +138,7 @@ private fun DocumentPane() {
             style = KmdMaterial3.style(),
             imageRenderer = CoilKmdImageRenderer,
             syntaxHighlighter = highlighter,
+            extensions = listOf(GfmAlerts),
             onLinkClick = { url ->
                 Toast.makeText(context, url, Toast.LENGTH_SHORT).show()
             },
@@ -151,7 +153,7 @@ private fun StreamPane(
 ) {
     val context = LocalContext.current
     val highlighter = sampleHighlighter()
-    val state = rememberKmdState()
+    val state = rememberKmdState(extensions = listOf(GfmAlerts))
     val scope = rememberCoroutineScope()
     var streaming by remember { mutableStateOf(false) }
     var job by remember { mutableStateOf<Job?>(null) }

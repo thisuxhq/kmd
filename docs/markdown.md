@@ -179,13 +179,23 @@ Wide tables scroll horizontally. Cells can later be replaced through the rendere
 
 ## Later
 
+GitHub alerts are an opt-in extension:
+
+```kotlin
+Kmd(markdown, extensions = listOf(GfmAlerts))
+```
+
+```md
+> [!NOTE]
+> Useful information.
+```
+
 Not promised, but the extension API should make them possible:
 
 ```text
 math
 Mermaid
 footnotes
-alerts
 mentions
 hashtags
 frontmatter

@@ -141,7 +141,14 @@ Kmd(
 )
 ```
 
-Images, highlighting, and block overrides arrive as explicit types, not hidden globals.
+Images, highlighting, block overrides, and extensions arrive as explicit types, not hidden globals.
+
+```kotlin
+Kmd(
+    markdown = markdown,
+    extensions = listOf(GfmAlerts)
+)
+```
 
 ```kotlin
 interface KmdImageRenderer

@@ -15,10 +15,11 @@ fun Kmd(
     imageRenderer: KmdImageRenderer? = null,
     syntaxHighlighter: KmdSyntaxHighlighter? = null,
     renderers: KmdRenderers = KmdRenderers.Default,
+    extensions: List<KmdExtension> = emptyList(),
 ) {
     val document =
-        remember(markdown) {
-            KmdEngine().parse(markdown)
+        remember(markdown, extensions) {
+            KmdEngine(extensions = extensions).parse(markdown)
         }
     RenderDocument(
         document = document,

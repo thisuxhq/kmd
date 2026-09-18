@@ -9,6 +9,7 @@ import com.thisux.kmd.KmdBlock
 import com.thisux.kmd.KmdListItem
 import com.thisux.kmd.OrderedList
 import com.thisux.kmd.Paragraph
+import com.thisux.kmd.CustomBlock
 import com.thisux.kmd.Table
 import com.thisux.kmd.TableRow
 
@@ -62,6 +63,11 @@ internal fun KmdBlock.sameContent(other: KmdBlock): Boolean {
             header.sameRow(other.header) &&
                 rows.size == other.rows.size &&
                 rows.zip(other.rows).all { (left, right) -> left.sameRow(right) }
+        this is CustomBlock && other is CustomBlock ->
+            name == other.name &&
+                data == other.data &&
+                children.size == other.children.size &&
+                children.zip(other.children).all { (left, right) -> left.sameContent(right) }
         else -> false
     }
 }
@@ -118,6 +124,11 @@ private fun rematchBlock(
                         row.copy(id = previous.rows.getOrNull(index)?.id ?: ids.next())
                     },
             )
+        previous is CustomBlock && incoming is CustomBlock ->
+            incoming.copy(
+                id = previous.id,
+                children = rematchBlocks(previous.children, incoming.children, ids).first,
+            )
         else -> incoming.rekey(ids)
     }
 }
@@ -156,6 +167,7 @@ internal fun KmdBlock.rekey(ids: IdGenerator): KmdBlock {
                 header = header.copy(id = ids.next()),
                 rows = rows.map { it.copy(id = ids.next()) },
             )
+        is CustomBlock -> copy(id = ids.next(), children = children.map { it.rekey(ids) })
     }
 }
 

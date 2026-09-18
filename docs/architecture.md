@@ -283,19 +283,21 @@ Keep these separate:
 ## Extensions
 
 ```kotlin
-interface KmdExtension
+fun interface KmdExtension {
+    fun process(document: KmdDocument): KmdDocument
+}
 ```
 
 ```kotlin
 KmdEngine(
     extensions = listOf(
-        GfmExtension,
+        GfmAlerts,
         MathExtension
     )
 )
 ```
 
-Extensions may add AST nodes and renderers. They should not force core to know about math, Mermaid, or GFM tables.
+Unknown syntax becomes `CustomBlock`. Renderers look it up by name. Core does not know what a warning is.
 
 ---
 

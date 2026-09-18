@@ -164,10 +164,9 @@ Phase 1 and Phase 2 have shipped.
 
 Phase 3, in order:
 
-1. Incremental append — parse the tail, not the whole buffer
-2. Accessibility — heading level, lists, tasks, tables
-3. Renderer registry — pass `Modifier`; override link, inline code, checkbox
-4. Extension API — `KmdExtension`, custom blocks, GitHub alerts
-5. `kmd-benchmark` — prove stable blocks do not recompose on append
+1. Accessibility — heading level, lists, tasks, tables
+2. Renderer registry — pass `Modifier`; override link, inline code, checkbox
+3. Extension API — `KmdExtension`, custom blocks, GitHub alerts
+4. `kmd-benchmark` — prove stable blocks do not recompose on append
 
 Do not start math or Mermaid while those are open.

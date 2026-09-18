@@ -9,8 +9,10 @@ internal class JetBrainsMarkdownParser : KmdParser {
     private val flavour = GFMFlavourDescriptor()
     private val parser = MarkdownParser(flavour, assertionsEnabled = false)
 
-    override fun parse(markdown: String): KmdDocument {
+    override fun parse(markdown: String): KmdDocument = parseLocated(markdown).document
+
+    fun parseLocated(markdown: String): ParsedMarkdown {
         val tree = parser.buildMarkdownTreeFromString(markdown)
-        return AstConverter(markdown).convert(tree)
+        return AstConverter(markdown).convertLocated(tree)
     }
 }

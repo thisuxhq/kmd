@@ -221,7 +221,9 @@ Streaming stays in core. Split `kmd-streaming` only if the engine deserves its o
 
 **Goal:** KMD is the Markdown engine people build on, not just the one they drop in.
 
-Close the shipped-product gaps first: incremental append, accessibility, the rest of the renderer API, then `KmdExtension`. Math and Mermaid wait.
+Incremental append is shipped: `append` reparses the tail, not the whole buffer.
+
+Still open: accessibility, the rest of the renderer API, then `KmdExtension`. Math and Mermaid wait.
 
 ### Extension API
 

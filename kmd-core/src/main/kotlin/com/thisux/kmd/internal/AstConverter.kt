@@ -37,9 +37,32 @@ internal class AstConverter(
     private val unassigned = KmdBlockId(0)
     private val references = mutableMapOf<String, String>()
 
-    fun convert(root: ASTNode): KmdDocument {
+    fun convert(root: ASTNode): KmdDocument = convertLocated(root).document
+
+    fun convertLocated(root: ASTNode): ParsedMarkdown {
         collectReferences(root)
-        return KmdDocument(convertBlocks(root.children))
+        val blocks = ArrayList<KmdBlock>()
+        val starts = ArrayList<Int>()
+        appendLocated(root.children, blocks, starts)
+        return ParsedMarkdown(KmdDocument(blocks), starts.toIntArray())
+    }
+
+    private fun appendLocated(
+        nodes: List<ASTNode>,
+        blocks: MutableList<KmdBlock>,
+        starts: MutableList<Int>,
+    ) {
+        for (node in nodes) {
+            if (node.type == MarkdownElementTypes.MARKDOWN_FILE) {
+                appendLocated(node.children, blocks, starts)
+                continue
+            }
+            val converted = convertBlocks(listOf(node))
+            for (block in converted) {
+                blocks += block
+                starts += node.startOffset
+            }
+        }
     }
 
     private fun collectReferences(node: ASTNode) {

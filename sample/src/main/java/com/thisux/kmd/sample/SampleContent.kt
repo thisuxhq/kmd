@@ -30,7 +30,11 @@ LLM output arrives a few characters at a time:
 
 KMD keeps finished blocks stable and only updates the tail.
 
-> Important: append-only streaming is the first optimization.
+> [!NOTE]
+> Append-only streaming is the first optimization.
+
+> [!WARNING]
+> Do not expose your API key.
 
 ---
 

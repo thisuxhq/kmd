@@ -164,7 +164,8 @@ Phase 1 and Phase 2 have shipped.
 
 Phase 3, in order:
 
-1. Extension API — `KmdExtension`, custom blocks, GitHub alerts
-2. `kmd-benchmark` — prove stable blocks do not recompose on append
+1. `kmd-benchmark` — prove stable blocks do not recompose on append
+2. KMP — `commonMain` for core, then compose targets
+3. Publishing — Maven coordinates, CI
 
 Do not start math or Mermaid while those are open.

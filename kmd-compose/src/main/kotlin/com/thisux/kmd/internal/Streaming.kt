@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.thisux.kmd.BlockQuote
 import com.thisux.kmd.BulletList
+import com.thisux.kmd.CustomBlock
 import com.thisux.kmd.KmdBlock
 import com.thisux.kmd.KmdBlockId
 import com.thisux.kmd.OrderedList
@@ -67,6 +68,7 @@ internal fun KmdBlock.caretLeafId(): KmdBlockId {
         is BlockQuote -> children.lastOrNull()?.caretLeafId() ?: id
         is BulletList -> items.lastOrNull()?.children?.lastOrNull()?.caretLeafId() ?: id
         is OrderedList -> items.lastOrNull()?.children?.lastOrNull()?.caretLeafId() ?: id
+        is CustomBlock -> children.lastOrNull()?.caretLeafId() ?: id
         else -> id
     }
 }

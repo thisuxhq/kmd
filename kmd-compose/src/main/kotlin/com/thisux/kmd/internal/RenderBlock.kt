@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import com.thisux.kmd.BlockQuote
 import com.thisux.kmd.BulletList
 import com.thisux.kmd.CodeBlock
+import com.thisux.kmd.CustomBlock
+import com.thisux.kmd.GfmAlerts
 import com.thisux.kmd.Heading
 import com.thisux.kmd.HorizontalRule
 import androidx.compose.ui.text.TextStyle
@@ -90,6 +92,10 @@ internal fun RenderBlock(
             RenderOrOverride(renderers.horizontalRule, block, animatedModifier) { RenderHorizontalRule(it) }
         is Table ->
             RenderOrOverride(renderers.table, block, animatedModifier) { RenderTable(block, it) }
+        is CustomBlock ->
+            RenderOrOverride(renderers.custom[block.name], block, animatedModifier) {
+                RenderCustomBlock(block, it)
+            }
     }
 }
 
@@ -470,6 +476,87 @@ private fun TableGrid(
                 y += rowHeights[row]
             }
         }
+    }
+}
+
+@Composable
+private fun RenderCustomBlock(
+    block: CustomBlock,
+    modifier: Modifier,
+) {
+    if (block.name == GfmAlerts.AlertName) {
+        RenderAlert(block, modifier)
+        return
+    }
+    Column(modifier.fillMaxWidth()) {
+        block.children.forEachIndexed { index, child ->
+            RenderBlock(
+                block = child,
+                modifier =
+                    Modifier.padding(
+                        bottom = if (index == block.children.lastIndex) 0.dp else LocalKmdStyle.current.spacing.block,
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun RenderAlert(
+    block: CustomBlock,
+    modifier: Modifier,
+) {
+    val style = LocalKmdStyle.current
+    val kind = block.data[GfmAlerts.KindKey] ?: "NOTE"
+    val color = alertColor(kind)
+    val quote = style.quote
+    Row(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+                .background(color.copy(alpha = 0.08f)),
+    ) {
+        Box(
+            Modifier
+                .width(quote.barWidth)
+                .fillMaxHeight()
+                .background(color),
+        )
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(start = quote.contentPadding, top = 8.dp, bottom = 8.dp, end = 12.dp),
+        ) {
+            BasicText(
+                text = kind.lowercase().replaceFirstChar { it.titlecase() },
+                style =
+                    style.typography.paragraph.copy(
+                        color = color,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+            block.children.forEachIndexed { index, child ->
+                RenderBlock(
+                    block = child,
+                    modifier =
+                        Modifier.padding(
+                            bottom = if (index == block.children.lastIndex) 0.dp else style.spacing.block,
+                        ),
+                )
+            }
+        }
+    }
+}
+
+private fun alertColor(kind: String): Color {
+    return when (kind) {
+        "TIP" -> Color(0xFF1A7F37)
+        "IMPORTANT" -> Color(0xFF8250DF)
+        "WARNING" -> Color(0xFF9A6700)
+        "CAUTION" -> Color(0xFFCF222E)
+        else -> Color(0xFF0969DA)
     }
 }
 

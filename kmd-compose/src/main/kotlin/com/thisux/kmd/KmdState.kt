@@ -33,9 +33,12 @@ class KmdState internal constructor(
 }
 
 @Composable
-fun rememberKmdState(initialMarkdown: String = ""): KmdState {
-    return remember {
-        val engine = KmdEngine()
+fun rememberKmdState(
+    initialMarkdown: String = "",
+    extensions: List<KmdExtension> = emptyList(),
+): KmdState {
+    return remember(extensions) {
+        val engine = KmdEngine(extensions = extensions)
         if (initialMarkdown.isNotEmpty()) {
             engine.replace(initialMarkdown)
         }

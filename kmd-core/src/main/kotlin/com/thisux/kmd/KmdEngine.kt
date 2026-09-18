@@ -7,6 +7,7 @@ import com.thisux.kmd.internal.rematchBlocks
 
 class KmdEngine(
     private val parser: KmdParser = JetBrainsMarkdownParser(),
+    private val extensions: List<KmdExtension> = emptyList(),
 ) {
     private val buffer = StringBuilder()
     private val ids = IdGenerator()
@@ -48,17 +49,18 @@ class KmdEngine(
             return publishFull(fromAppend = true)
         }
         val located = parseSlice(tail)
+        val extended = applyExtensions(located)
         val prefixCount = prefixCountForCut(cut)
         val prefix = current.document.blocks.take(prefixCount)
-        val incoming = ArrayList<KmdBlock>(prefixCount + located.document.blocks.size)
+        val incoming = ArrayList<KmdBlock>(prefixCount + extended.document.blocks.size)
         incoming.addAll(prefix)
-        incoming.addAll(located.document.blocks)
+        incoming.addAll(extended.document.blocks)
         val incomingStarts = IntArray(incoming.size)
         if (prefixCount > 0) {
             starts.copyInto(incomingStarts, endIndex = prefixCount)
         }
-        for (index in located.starts.indices) {
-            incomingStarts[prefixCount + index] = located.starts[index] + cut
+        for (index in extended.starts.indices) {
+            incomingStarts[prefixCount + index] = extended.starts[index] + cut
         }
         val (blocks, candidate) = rematchBlocks(current.document.blocks, incoming, ids)
         starts = incomingStarts
@@ -67,7 +69,7 @@ class KmdEngine(
     }
 
     private fun publishFull(fromAppend: Boolean): KmdSnapshot {
-        val located = parseSlice(buffer.toString())
+        val located = applyExtensions(parseSlice(buffer.toString()))
         val (blocks, candidate) = rematchBlocks(current.document.blocks, located.document.blocks, ids)
         val active = if (fromAppend) candidate else null
         starts = located.starts
@@ -94,6 +96,18 @@ class KmdEngine(
     private fun endedWithBlankLine(length: Int): Boolean {
         if (length < 2) return false
         return buffer[length - 1] == '\n' && buffer[length - 2] == '\n'
+    }
+
+    private fun applyExtensions(parsed: ParsedMarkdown): ParsedMarkdown {
+        if (extensions.isEmpty()) return parsed
+        val document = extensions.fold(parsed.document) { current, extension -> extension.process(current) }
+        val starts =
+            if (document.blocks.size == parsed.starts.size) {
+                parsed.starts
+            } else {
+                IntArray(document.blocks.size)
+            }
+        return ParsedMarkdown(document, starts)
     }
 
     private fun parseSlice(source: String): ParsedMarkdown {

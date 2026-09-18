@@ -9,13 +9,22 @@ Anything beyond V1 blocks should arrive as an extension, not a core special case
 ## Shape
 
 ```kotlin
-interface KmdExtension
+fun interface KmdExtension {
+    fun process(document: KmdDocument): KmdDocument
+}
+```
+
+```kotlin
+Kmd(
+    markdown = markdown,
+    extensions = listOf(GfmAlerts)
+)
 ```
 
 ```kotlin
 KmdEngine(
     extensions = listOf(
-        GfmExtension,
+        GfmAlerts,
         MathExtension
     )
 )
@@ -48,12 +57,12 @@ leak parser types
 | GFM | shipped in core | strikethrough, task lists, tables, autolinks |
 | Images | shipped (`kmd-images`) | Coil adapter; custom loaders via `KmdImageRenderer` |
 | Highlight | shipped (`kmd-highlight`) | keyword highlighter; Tree-sitter / TextMate / Shiki later |
-| Alerts | next | GitHub `> [!NOTE]` / `:::warning` as custom blocks |
+| Alerts | shipped (`GfmAlerts`) | GitHub `> [!NOTE]` as `CustomBlock` |
 | Math | later | formulas as native UI or a supplied renderer |
 | Mermaid | later | diagrams, host-supplied renderer |
 | Directives | later | `:::warning` custom blocks |
 
-GFM was meant to prove `KmdExtension`. It landed as parser + renderer work in core instead. The extension API is still the next foundation — alerts should not patch core the same way.
+GFM tables landed in core. Alerts use the extension API: `GfmAlerts` rewrites matching blockquotes into `CustomBlock(name = "alert")`. Enable it explicitly.
 
 ---
 
@@ -68,7 +77,19 @@ Do not expose your API key.
 
 That should map to a user-supplied Compose block, not a paragraph with extra punctuation.
 
-The AST grows a node. The registry supplies the UI. Core does not know what a warning is.
+Unknown syntax becomes `CustomBlock`. The registry looks it up by name:
+
+```kotlin
+Kmd(
+    markdown = markdown,
+    extensions = listOf(GfmAlerts),
+    renderers = KmdRenderers {
+        custom("alert") { block, modifier -> MyAlert(block, modifier) }
+    }
+)
+```
+
+Core does not know what a warning is. Defaults render GitHub alerts as a labeled quote.
 
 ---
 

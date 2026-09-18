@@ -223,7 +223,7 @@ Streaming stays in core. Split `kmd-streaming` only if the engine deserves its o
 
 Incremental append is shipped: `append` reparses the tail, not the whole buffer.
 
-Still open: accessibility, the rest of the renderer API, then `KmdExtension`. Math and Mermaid wait.
+Still open: the rest of the renderer API, then `KmdExtension`. Math and Mermaid wait.
 
 ### Extension API
 

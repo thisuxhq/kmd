@@ -16,6 +16,9 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 kotlin {
@@ -30,4 +33,9 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.text)
+    testImplementation(composeBom)
+    testImplementation(libs.junit)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

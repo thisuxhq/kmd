@@ -26,12 +26,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.CollectionItemInfo
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -126,7 +130,10 @@ private fun RenderHeading(
             modifier
                 .fillMaxWidth()
                 .padding(bottom = style.spacing.headingBottom)
-                .semantics { heading() },
+                .semantics(mergeDescendants = true) {
+                    heading()
+                    kmdHeadingLevel = block.level
+                },
         showCaret = showCaret,
     )
 }
@@ -223,13 +230,30 @@ private fun RenderList(
     marker: (Int) -> String,
 ) {
     val style = LocalKmdStyle.current
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .semantics {
+                    collectionInfo = CollectionInfo(rowCount = items.size, columnCount = 1)
+                },
+    ) {
         items.forEachIndexed { index, item ->
             Row(
-                Modifier.padding(
-                    start = style.list.indent,
-                    bottom = if (index == items.lastIndex) 0.dp else style.list.itemSpacing,
-                ),
+                Modifier
+                    .semantics {
+                        collectionItemInfo =
+                            CollectionItemInfo(
+                                rowIndex = index,
+                                rowSpan = 1,
+                                columnIndex = 0,
+                                columnSpan = 1,
+                            )
+                    }
+                    .padding(
+                        start = style.list.indent,
+                        bottom = if (index == items.lastIndex) 0.dp else style.list.itemSpacing,
+                    ),
                 verticalAlignment = Alignment.Top,
             ) {
                 val checked = item.checked
@@ -276,8 +300,7 @@ private fun TaskMarker(
         modifier =
             modifier.semantics {
                 role = Role.Checkbox
-                selected = checked
-                contentDescription = if (checked) "Completed" else "Not completed"
+                toggleableState = if (checked) ToggleableState.On else ToggleableState.Off
             },
         contentAlignment = Alignment.CenterStart,
     ) {
@@ -324,7 +347,10 @@ private fun RenderTable(
                 .fillMaxWidth()
                 .clip(shape)
                 .border(1.dp, dividerColor, shape)
-                .horizontalScroll(rememberScrollState()),
+                .horizontalScroll(rememberScrollState())
+                .semantics {
+                    collectionInfo = CollectionInfo(rowCount = rows.size, columnCount = columnCount)
+                },
         ) {
             TableGrid(
                 columnCount = columnCount,
@@ -343,6 +369,15 @@ private fun RenderTable(
                     val cell = row.cells.getOrNull(column)
                     Box(
                         Modifier
+                            .semantics {
+                                collectionItemInfo =
+                                    CollectionItemInfo(
+                                        rowIndex = rowIndex,
+                                        rowSpan = 1,
+                                        columnIndex = column,
+                                        columnSpan = 1,
+                                    )
+                            }
                             .background(background)
                             .drawBehind {
                                 if (!lastRow) {
@@ -452,6 +487,9 @@ private fun RenderImage(
                 color = style.colors.link,
                 fontStyle = FontStyle.Italic,
             ),
-        modifier = modifier.semantics { contentDescription = description },
+        modifier =
+            modifier.semantics {
+                role = Role.Image
+            },
     )
 }

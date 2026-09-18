@@ -118,7 +118,7 @@ do not allocate style objects
 do not create new Compose keys for stable blocks
 ```
 
-Identity rematch already keeps keys. The engine still reparses the whole buffer. Incremental parse of the tail is the next cut.
+Identity rematch keeps keys. `append` reparses from the last block, not the whole buffer. A trailing blank line lets the engine skip the last block too and parse only the new suffix.
 
 The cheap path is: grow or replace the tail, bump revision, emit a snapshot.
 

@@ -71,18 +71,18 @@ is changing.
 
 ## The path
 
-Today KMD reparses the whole buffer on `append`, then rematches identities so finished blocks keep their keys.
+On `append`, KMD reparses from the last block (or only the new suffix after a blank line). Finished prefix blocks are kept as-is.
 
-The intended path:
+Link reference definitions in the tail fall back to a full parse, because they can change earlier links.
 
 ```text
 token
  ↓
-identify active block
+cut at the last block (or after a blank line)
  ↓
 parse the tail
  ↓
-update block
+keep prefix identities
  ↓
 Compose recomposes changed UI
 ```

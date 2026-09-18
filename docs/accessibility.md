@@ -10,7 +10,7 @@ A Markdown heading that is only big text is a bug.
 
 | Markdown | Semantics |
 |---|---|
-| `# Heading` | heading, with level |
+| `# Heading` | heading, with level (`KmdHeadingLevel`) |
 | `[label](url)` | clickable link, with label |
 | `![alt](src)` | content description from alt |
 | `- [x] task` | checkbox, checked state |
@@ -32,7 +32,7 @@ other Compose-supported readers
 
 Heading level is part of the node (`H1`–`H6`) and must reach semantics.
 
-Visual style and semantics are separate. A custom renderer that makes an `H2` look like body text should still expose heading level 2 unless the user replaces that too.
+Compose still has no platform heading-level property. Defaults set `heading()` and `KmdHeadingLevel` so tests and custom readers can see 1–6. Visual style and semantics stay separate. A custom renderer that makes an `H2` look like body text should still expose heading level 2 unless the user replaces that too.
 
 ---
 
@@ -65,7 +65,7 @@ The image renderer is pluggable. Any Coil / Kamel adapter must pass alt through.
 
 These are checkboxes, not text with a unicode box.
 
-Checked state belongs in semantics. If the host does not handle toggle, they can be read-only checkboxes, but they still expose state.
+Checked state belongs in semantics (`Role.Checkbox` + toggleable state). Defaults are read-only unless the host replaces the checkbox renderer. Do not hardcode English labels like "Completed" — the role and state are enough.
 
 ---
 

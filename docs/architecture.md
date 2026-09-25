@@ -217,7 +217,7 @@ Snapshot:
 
 ```kotlin
 data class KmdSnapshot(
-    val blocks: List<KmdBlock>,
+    val document: KmdDocument,
     val activeBlock: KmdBlock?,
     val revision: Long
 )
@@ -226,10 +226,15 @@ data class KmdSnapshot(
 Engine:
 
 ```kotlin
-class KmdEngine {
+class KmdEngine(
+    parser: KmdParser = /* internal JetBrains adapter */,
+    extensions: List<KmdExtension> = emptyList(),
+) {
+    fun parse(markdown: String): KmdDocument
     fun append(input: String): KmdSnapshot
-    fun reset()
     fun replace(markdown: String): KmdSnapshot
+    fun reset()
+    fun snapshot(): KmdSnapshot
 }
 ```
 

@@ -233,7 +233,7 @@ interface KmdExtension
 
 KmdEngine(
     extensions = listOf(
-        GfmExtension,
+        GfmAlerts,
         MathExtension
     )
 )

@@ -31,6 +31,7 @@ GFM (strikethrough, task lists, tables, autolinks) lives in `kmd-core` / `kmd-co
 ## Commands
 
 ```bash
+./gradlew test
 ./gradlew :kmd-core:test
 ./gradlew :kmd-compose:compileDebugKotlin
 ./gradlew :kmd-compose-material3:compileDebugKotlin

@@ -18,6 +18,7 @@ kmd-compose/              Compose renderer, Kmd(), KmdStyle, LazyKmd (no Materia
 kmd-compose-material3/    KmdMaterial3.style()
 kmd-images/               Coil image loader
 kmd-highlight/            keyword syntax highlighter
+kmd-benchmark/            engine timings, allocations, identity checks (host JVM)
 sample/                   Android demo (Document + Stream + Settings)
 docs/                     product source of truth
 ```
@@ -33,6 +34,7 @@ GFM (strikethrough, task lists, tables, autolinks) lives in `kmd-core` / `kmd-co
 ```bash
 ./gradlew test
 ./gradlew :kmd-core:test
+./gradlew :kmd-benchmark:test
 ./gradlew :kmd-compose:compileDebugKotlin
 ./gradlew :kmd-compose-material3:compileDebugKotlin
 ./gradlew :sample:assembleDebug
@@ -165,7 +167,7 @@ Phase 1 and Phase 2 have shipped.
 
 Phase 3, in order:
 
-1. `kmd-benchmark` — prove stable blocks do not recompose on append
+1. ~~`kmd-benchmark` — prove stable blocks do not recompose on append~~ shipped
 2. KMP — `commonMain` for core, then compose targets
 3. Publishing — Maven coordinates, CI
 

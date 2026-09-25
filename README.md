@@ -14,6 +14,7 @@ kmd-compose
 kmd-compose-material3
 kmd-images
 kmd-highlight
+kmd-benchmark
 sample
 ```
 

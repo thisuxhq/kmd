@@ -154,17 +154,22 @@ If identities churn, streaming is broken even if the pixels look right for a mom
 
 ```kotlin
 data class KmdSnapshot(
-    val blocks: List<KmdBlock>,
+    val document: KmdDocument,
     val activeBlock: KmdBlock?,
     val revision: Long
 )
 ```
 
 ```kotlin
-class KmdEngine {
+class KmdEngine(
+    parser: KmdParser = /* internal JetBrains adapter */,
+    extensions: List<KmdExtension> = emptyList(),
+) {
+    fun parse(markdown: String): KmdDocument
     fun append(input: String): KmdSnapshot
-    fun reset()
     fun replace(markdown: String): KmdSnapshot
+    fun reset()
+    fun snapshot(): KmdSnapshot
 }
 ```
 

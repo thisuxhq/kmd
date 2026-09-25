@@ -175,13 +175,29 @@ Performance work that strips semantics is not an optimization.
 
 ## Benchmarks module
 
-Later:
-
-```text
-kmd-benchmark
-kmd-test
+```bash
+./gradlew :kmd-benchmark:test
 ```
 
-Benchmarks live in the repo from the moment streaming exists, even if the module is thin.
+`kmd-benchmark` runs on the host JVM, so it needs no device and runs in CI.
+
+It has two halves:
+
+```text
+StreamingIdentityTest   asserted: finished blocks are never rebuilt while streaming
+KmdEngineBenchmark      reported: parse time, append p50/p99, allocations per append
+```
+
+Timings are reported, never asserted. The report lands in `kmd-benchmark/build/reports/kmd-benchmark/report.md`.
+
+Recomposition is proven in `kmd-compose` (`KmdRecompositionTest`), because it needs the internal block probe: appending tokens recomposes only the active block, for both `Kmd` and `LazyKmd`, with and without the caret.
 
 If we cannot show that append does not recompose blocks 1–N, we do not have streaming yet.
+
+### Known gaps
+
+```text
+allocations per append grow with block count (the block list and starts are copied each append)
+compose apply time and frame timing need a device benchmark (androidx.benchmark, later)
+kmd-test
+```

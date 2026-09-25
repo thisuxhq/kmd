@@ -226,6 +226,8 @@ Incremental append is shipped: `append` reparses the tail, not the whole buffer.
 
 `KmdExtension` and GitHub alerts are shipped. Math and Mermaid wait.
 
+`kmd-benchmark` is shipped: finished blocks are not rebuilt or recomposed on append. See [Performance](performance.md).
+
 ### Extension API
 
 ```kotlin

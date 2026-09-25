@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -29,6 +30,10 @@ internal fun ProvideKmdLocals(
     content: @Composable () -> Unit,
 ) {
     val tracker = remember { BlockEnterTracker() }
+    val caret = remember { KmdCaret() }
+    val caretId = activeBlock?.caretLeafId()
+    // Written after composition so only blocks whose caret flips recompose.
+    SideEffect { caret.blockId = caretId }
     if (document != null) {
         tracker.onFrame(document.blocks.map { it.id.value })
     }
@@ -40,7 +45,7 @@ internal fun ProvideKmdLocals(
         LocalKmdImageRenderer provides imageRenderer,
         LocalKmdSyntaxHighlighter provides syntaxHighlighter,
         LocalKmdRenderers provides renderers,
-        LocalKmdActiveBlock provides activeBlock,
+        LocalKmdCaret provides caret,
         LocalBlockEnterTracker provides tracker,
         LocalKmdReducedMotion provides reduced,
         content = content,
@@ -76,7 +81,7 @@ internal fun RenderDocument(
                         block = block,
                         modifier =
                             Modifier.padding(
-                                bottom = if (index == document.blocks.lastIndex) 0.dp else style.spacing.block,
+                                top = if (index == 0) 0.dp else style.spacing.block,
                             ),
                     )
                 }

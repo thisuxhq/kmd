@@ -111,7 +111,7 @@ private fun LazyKmdDocument(
                     block = block,
                     modifier =
                         Modifier.padding(
-                            bottom = if (index == document.blocks.lastIndex) 0.dp else style.spacing.block,
+                            top = if (index == 0) 0.dp else style.spacing.block,
                         ),
                 )
             }

@@ -6,6 +6,10 @@ Native Markdown for Compose.
 Kmd("# Hello")
 ```
 
+```kotlin
+implementation("com.thisux.kmd:kmd-compose:0.1.0")
+```
+
 Modules:
 
 ```text

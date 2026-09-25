@@ -16,17 +16,20 @@ That level of simplicity is the goal.
 
 ## Installation
 
-Eventually:
+From Maven Central:
 
 ```kotlin
-implementation("io.thisux:kmd:<version>")
+implementation("com.thisux.kmd:kmd-compose:<version>")
+
+// optional
+implementation("com.thisux.kmd:kmd-compose-material3:<version>")
+implementation("com.thisux.kmd:kmd-images:<version>")
+implementation("com.thisux.kmd:kmd-highlight:<version>")
 ```
 
-Suggested package:
+`kmd-compose` brings `kmd-core` and Compose with it. No BOM required.
 
-```text
-com.thisux.kmd
-```
+Package: `com.thisux.kmd`.
 
 Material 3 is a separate artifact. A user who does not want Material should not have to take it.
 

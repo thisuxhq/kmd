@@ -18,6 +18,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,8 +69,10 @@ internal fun RenderBlock(
     val renderers = LocalKmdRenderers.current
     val streaming = LocalKmdOptions.current.streaming
     val reduced = LocalKmdReducedMotion.current
-    val caretId = LocalKmdActiveBlock.current?.caretLeafId()
-    val showCaret = streaming.caret && !reduced && block.id == caretId
+    val caret = LocalKmdCaret.current
+    val isCaretBlock by remember(caret, block.id) { derivedStateOf { caret?.blockId == block.id } }
+    val showCaret = streaming.caret && !reduced && isCaretBlock
+    LocalKmdBlockProbe.current?.onCompose(block.id, showCaret)
     val animatedModifier = modifier.streamingEnter(block.id.value)
     when (block) {
         is Heading ->

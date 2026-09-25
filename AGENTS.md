@@ -161,6 +161,26 @@ gh label create "<name>" --description "<one line>" --color "<hex>"
 
 ---
 
+## Releasing
+
+Published: `kmd-core`, `kmd-compose`, `kmd-compose-material3`, `kmd-images`, `kmd-highlight`. Never `sample` or `kmd-benchmark`.
+
+Group and version live in root `gradle.properties` (`GROUP`, `VERSION_NAME`). Per-module POM names live in each module's `gradle.properties`.
+
+Credentials and signing keys live in `~/.gradle/gradle.properties`, never in the repo.
+
+```bash
+./gradlew publishToMavenLocal -PsignAllPublications=false   # check artifacts, no key needed
+./gradlew publishToMavenCentral                              # upload; release by hand in the portal
+./gradlew publishAndReleaseToMavenCentral                    # upload and release
+```
+
+A Central release cannot be deleted. Check the local artifacts first.
+
+A type from a dependency that appears in a public signature needs `api`, not `implementation`.
+
+---
+
 ## Next
 
 Phase 1 and Phase 2 have shipped.
@@ -168,7 +188,7 @@ Phase 1 and Phase 2 have shipped.
 Phase 3, in order:
 
 1. ~~`kmd-benchmark` — prove stable blocks do not recompose on append~~ shipped
-2. KMP — `commonMain` for core, then compose targets
-3. Publishing — Maven coordinates, CI
+2. Publishing — `com.thisux.kmd` on Maven Central (see Releasing)
+3. KMP — `commonMain` for core, then compose targets. Keep the same coordinates.
 
 Do not start math or Mermaid while those are open.

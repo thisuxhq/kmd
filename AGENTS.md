@@ -177,6 +177,8 @@ Credentials and signing keys live in `~/.gradle/gradle.properties`, never in the
 
 A Central release cannot be deleted. Check the local artifacts first.
 
+CI (`.github/workflows/release.yml`) publishes on a `v*` tag that matches `VERSION_NAME`. It needs repo secrets `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`, `SIGNING_KEY` (armored), `SIGNING_KEY_ID`, `SIGNING_KEY_PASSWORD`.
+
 A type from a dependency that appears in a public signature needs `api`, not `implementation`.
 
 ---

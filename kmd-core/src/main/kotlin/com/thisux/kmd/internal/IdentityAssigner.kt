@@ -43,6 +43,7 @@ internal fun rematchBlocks(
 }
 
 internal fun KmdBlock.sameContent(other: KmdBlock): Boolean {
+    if (this === other) return true
     return when {
         this is Heading && other is Heading ->
             level == other.level && content == other.content
@@ -53,37 +54,43 @@ internal fun KmdBlock.sameContent(other: KmdBlock): Boolean {
         this is HorizontalRule && other is HorizontalRule ->
             true
         this is BlockQuote && other is BlockQuote ->
-            children.size == other.children.size &&
-                children.zip(other.children).all { (left, right) -> left.sameContent(right) }
+            children.sameBlocks(other.children)
         this is BulletList && other is BulletList ->
             items.sameItems(other.items)
         this is OrderedList && other is OrderedList ->
             start == other.start && items.sameItems(other.items)
         this is Table && other is Table ->
-            header.sameRow(other.header) &&
-                rows.size == other.rows.size &&
-                rows.zip(other.rows).all { (left, right) -> left.sameRow(right) }
+            header.sameRow(other.header) && rows.allPaired(other.rows) { left, right -> left.sameRow(right) }
         this is CustomBlock && other is CustomBlock ->
             name == other.name &&
                 data == other.data &&
-                children.size == other.children.size &&
-                children.zip(other.children).all { (left, right) -> left.sameContent(right) }
+                children.sameBlocks(other.children)
         else -> false
     }
 }
 
-private fun List<KmdListItem>.sameItems(other: List<KmdListItem>): Boolean {
-    if (size != other.size) return false
-    return zip(other).all { (left, right) ->
-        left.checked == right.checked &&
-            left.children.size == right.children.size &&
-            left.children.zip(right.children).all { (a, b) -> a.sameContent(b) }
+private fun List<KmdListItem>.sameItems(other: List<KmdListItem>): Boolean =
+    allPaired(other) { left, right ->
+        left === right || (left.checked == right.checked && left.children.sameBlocks(right.children))
     }
-}
 
-private fun TableRow.sameRow(other: TableRow): Boolean {
-    if (cells.size != other.cells.size) return false
-    return cells.zip(other.cells).all { (left, right) -> left.content == right.content }
+private fun List<KmdBlock>.sameBlocks(other: List<KmdBlock>): Boolean =
+    allPaired(other) { left, right -> left.sameContent(right) }
+
+private fun TableRow.sameRow(other: TableRow): Boolean =
+    this === other || cells.allPaired(other.cells) { left, right -> left.content == right.content }
+
+// zip().all() without the Pair list: this runs on every append.
+private inline fun <T> List<T>.allPaired(
+    other: List<T>,
+    predicate: (T, T) -> Boolean,
+): Boolean {
+    if (this === other) return true
+    if (size != other.size) return false
+    for (index in indices) {
+        if (!predicate(this[index], other[index])) return false
+    }
+    return true
 }
 
 private fun rematchBlock(

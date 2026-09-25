@@ -12,7 +12,9 @@ class KmdEngine(
     private val buffer = StringBuilder()
     private val ids = IdGenerator()
     private var current = KmdSnapshot(KmdDocument(emptyList()), activeBlock = null, revision = 0)
+    // Source offset of each top-level block. Grown in place; only the first startCount entries are live.
     private var starts: IntArray = IntArray(0)
+    private var startCount = 0
 
     internal var lastParsedLength: Int = 0
         private set
@@ -29,6 +31,7 @@ class KmdEngine(
     fun reset() {
         buffer.setLength(0)
         starts = IntArray(0)
+        startCount = 0
         lastParsedLength = 0
         current = KmdSnapshot(KmdDocument(emptyList()), activeBlock = null, revision = current.revision + 1)
     }
@@ -51,19 +54,23 @@ class KmdEngine(
         val located = parseSlice(tail)
         val extended = applyExtensions(located)
         val prefixCount = prefixCountForCut(cut)
-        val prefix = current.document.blocks.take(prefixCount)
-        val incoming = ArrayList<KmdBlock>(prefixCount + extended.document.blocks.size)
-        incoming.addAll(prefix)
-        incoming.addAll(extended.document.blocks)
-        val incomingStarts = IntArray(incoming.size)
-        if (prefixCount > 0) {
-            starts.copyInto(incomingStarts, endIndex = prefixCount)
+        val previous = current.document.blocks
+        // The prefix is untouched by construction, so only the tail is rematched.
+        val (rematched, candidate) =
+            rematchBlocks(previous.subList(prefixCount, previous.size), extended.document.blocks, ids)
+        val blocks = ArrayList<KmdBlock>(prefixCount + rematched.size)
+        for (index in 0 until prefixCount) {
+            blocks.add(previous[index])
+        }
+        blocks.addAll(rematched)
+        val count = prefixCount + extended.starts.size
+        if (starts.size < count) {
+            starts = starts.copyOf(maxOf(count, starts.size * 2))
         }
         for (index in extended.starts.indices) {
-            incomingStarts[prefixCount + index] = extended.starts[index] + cut
+            starts[prefixCount + index] = extended.starts[index] + cut
         }
-        val (blocks, candidate) = rematchBlocks(current.document.blocks, incoming, ids)
-        starts = incomingStarts
+        startCount = count
         current = KmdSnapshot(KmdDocument(blocks), candidate, current.revision + 1)
         return current
     }
@@ -73,24 +80,28 @@ class KmdEngine(
         val (blocks, candidate) = rematchBlocks(current.document.blocks, located.document.blocks, ids)
         val active = if (fromAppend) candidate else null
         starts = located.starts
+        startCount = located.starts.size
         current = KmdSnapshot(KmdDocument(blocks), active, current.revision + 1)
         return current
     }
 
     private fun incrementalCut(previousLength: Int): Int {
-        if (starts.isEmpty() || current.document.blocks.isEmpty()) return 0
-        val lastStart = starts.last()
+        if (startCount == 0 || current.document.blocks.isEmpty()) return 0
+        val lastStart = starts[startCount - 1]
         if (current.document.blocks.last() is CodeBlock) return lastStart
         if (endedWithBlankLine(previousLength)) return previousLength
         return lastStart
     }
 
     private fun prefixCountForCut(cut: Int): Int {
-        var count = 0
-        while (count < starts.size && starts[count] < cut) {
-            count++
+        // Starts never decrease, so find the first block at or after the cut.
+        var low = 0
+        var high = startCount
+        while (low < high) {
+            val mid = (low + high) ushr 1
+            if (starts[mid] < cut) low = mid + 1 else high = mid
         }
-        return count
+        return low
     }
 
     private fun endedWithBlankLine(length: Int): Boolean {
